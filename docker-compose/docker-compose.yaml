@@ -1,0 +1,11 @@
+services:
+  postgres-database:
+    image: postgres:14
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - '5432:5432'
+    volumes: 
+      - /opt/docker_volumes/postgresql:/var/lib/postgresql/data
