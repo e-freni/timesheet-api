@@ -20,11 +20,7 @@ import java.util.List;
 @Service
 public class TokenService {
 
-    public static final String ROLE_GUEST = "ROLE_GUEST";
-
     private static final String ROLE_KEY = "role";
-    private static final String SURVEY_TYPE_ID_KEY = "stid";
-
     private final Key key;
     private final Long validityMillis;
 
@@ -40,19 +36,6 @@ public class TokenService {
         return Jwts.builder()
                 .setSubject(user.getUsername())
                 .claim(ROLE_KEY, user.getRole().getAuthority())
-                .signWith(key, SignatureAlgorithm.HS512)
-                .setExpiration(validity)
-                .compact();
-    }
-
-    public String createGuestToken(Long surveyTypeId, String email) {
-        long now = (new Date()).getTime();
-        Date validity = new Date(now + 2629800000L);
-
-        return Jwts.builder()
-                .setSubject(email)
-                .claim(ROLE_KEY, ROLE_GUEST)
-                .claim(SURVEY_TYPE_ID_KEY, surveyTypeId)
                 .signWith(key, SignatureAlgorithm.HS512)
                 .setExpiration(validity)
                 .compact();

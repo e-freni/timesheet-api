@@ -2,10 +2,10 @@ package com.jaewa.timesheet.model;
 
 public enum UserRole {
 
-    ADMINSTRATOR("ROLE_SYSTEM_ADMIN"),
+    ADMINISTRATOR("ROLE_ADMIN"),
     USER("ROLE_USER");
 
-    private String authority;
+    private final String authority;
 
     UserRole(String authority) {
         this.authority = authority;
