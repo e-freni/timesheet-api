@@ -43,7 +43,7 @@ public class ApplicationUserService {
         Optional<ApplicationUser> optionalApplicationUser = applicationUserRepository.findById(id);
 
         if(optionalApplicationUser.isEmpty()){
-            throw new EntityNotFoundException();
+            throw new EntityNotFoundException("User doesn't exists");
         }
 
         return optionalApplicationUser.get();

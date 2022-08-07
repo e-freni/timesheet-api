@@ -21,6 +21,7 @@ import java.util.List;
 public class TokenService {
 
     private static final String ROLE_KEY = "role";
+    private static final String USER_ID = "userId";
     private final Key key;
     private final Long validityMillis;
 
@@ -36,6 +37,7 @@ public class TokenService {
         return Jwts.builder()
                 .setSubject(user.getUsername())
                 .claim(ROLE_KEY, user.getRole().getAuthority())
+                .claim(USER_ID, user.getId())
                 .signWith(key, SignatureAlgorithm.HS512)
                 .setExpiration(validity)
                 .compact();
@@ -49,9 +51,8 @@ public class TokenService {
                 .getBody();
 
         SimpleGrantedAuthority authority = new SimpleGrantedAuthority(claims.get(ROLE_KEY).toString());
-        Token t = new Token(
-                claims.getSubject()
-        );
+        //FIXME get a better way to convert di userId
+        Token t = new Token(claims.getSubject(), Long.valueOf((Integer) claims.get(USER_ID)));
         return new UsernamePasswordAuthenticationToken(t, token, List.of(authority));
     }
 

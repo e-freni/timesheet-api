@@ -151,6 +151,7 @@ public class WorkdayService {
     }
 
     public Workday editWorkday(Workday workday) throws IncoherentDataException {
+
         Optional<Workday> result = workdayRepository.findById(workday.getId());
 
         if (result.isEmpty()) {
@@ -162,6 +163,7 @@ public class WorkdayService {
     }
 
     public void deleteWorkday(Workday workday) {
+
         Optional<Workday> result = workdayRepository.findById(workday.getId());
 
         if (result.isEmpty()) {
