@@ -2,6 +2,7 @@ package com.jaewa.timesheet.controller;
 
 import com.jaewa.timesheet.controller.dto.WorkdayDto;
 import com.jaewa.timesheet.controller.mapper.WorkdayMapper;
+import com.jaewa.timesheet.exception.IncoherentDataException;
 import com.jaewa.timesheet.model.Workday;
 import com.jaewa.timesheet.service.WorkdayService;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +53,7 @@ public class WorkdayController {
         try{
             Workday result = workdayService.addNewWorkday(workdayMapper.toModel(dto));
             return ResponseEntity.ok(workdayMapper.toDto(result));
-        } catch (EntityNotFoundException e) {
+        } catch (EntityNotFoundException | IncoherentDataException e) {
             return ResponseEntity.badRequest().build();
         }
     }

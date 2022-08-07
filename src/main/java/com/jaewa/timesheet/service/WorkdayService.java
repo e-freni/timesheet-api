@@ -1,5 +1,6 @@
 package com.jaewa.timesheet.service;
 
+import com.jaewa.timesheet.exception.IncoherentDataException;
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.Workday;
 import com.jaewa.timesheet.model.repository.WorkdayRepository;
@@ -32,10 +33,9 @@ public class WorkdayService {
         return workdayRepository.findById(id);
     }
 
-    public Workday addNewWorkday(Workday workday) {
+    public Workday addNewWorkday(Workday workday) throws IncoherentDataException {
 
         addUserToWorkday(workday);
-        //TODO add detailed exceptions for each incongruent check
         checkUserSickness(workday);
         checkUserAccidentAtWork(workday);
         checkUserHoliday(workday);
@@ -46,108 +46,96 @@ public class WorkdayService {
         return workdayRepository.save(workday);
     }
 
-    private void checkUserNormalDayWork(Workday workday) {
+    private void checkUserNormalDayWork(Workday workday) throws IncoherentDataException {
         if (workday.getWorkingHours() == 8) {
             if (workday.isSick()) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("8 working hours are not coherent with sickness");
             }
             if (workday.isHoliday()) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("8 working hours are not coherent with holidays");
             }
             if (workday.isAccidentAtWork()) {
-                throw new RuntimeException();
-            }
-            if (workday.getWorkingHours() > 0) {
-                throw new RuntimeException();
-            }
-            if (workday.getExtraHours() > 0) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("8 working hours are not coherent with an accident at work");
             }
             if (workday.getWorkPermitHours() > 0) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("8 working hours are not coherent with any work permit hours");
             }
         }
     }
 
-    private void checkUserWorkPermitHours(Workday workday) {
+    private void checkUserWorkPermitHours(Workday workday) throws IncoherentDataException {
         if (workday.getWorkPermitHours() > 0 && workday.getWorkingHours() + workday.getWorkPermitHours() + workday.getFuneralLeaveHours() != 8) {
-            throw new RuntimeException();
+            throw new IncoherentDataException("Permit hours are not coherent with others hours");
         }
     }
 
-    private void checkUserExtraHours(Workday workday) {
+    private void checkUserExtraHours(Workday workday) throws IncoherentDataException {
         if (workday.getExtraHours() > 0 && workday.getWorkingHours() + workday.getWorkPermitHours() + workday.getFuneralLeaveHours() != 8) {
-            throw new RuntimeException();
+            throw new IncoherentDataException("Extra hours are not coherent with others hours");
         }
     }
 
 
-    private void checkUserHoliday(Workday workday) {
+    private void checkUserHoliday(Workday workday) throws IncoherentDataException {
         if (workday.isHoliday()) {
-
             if (workday.isAccidentAtWork()) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Holiday is not coherent with accident at work");
             }
             if (workday.isSick()) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Holiday is not coherent with sickness");
             }
             if (workday.getWorkingHours() > 0) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Holiday is not coherent with any working hours");
             }
             if (workday.getExtraHours() > 0) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Holiday is not coherent with any extra hours");
             }
             if (workday.getWorkPermitHours() > 0) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Holiday is not coherent with any work permit hours");
             }
 
         }
     }
 
-    private void checkUserAccidentAtWork(Workday workday) {
+    private void checkUserAccidentAtWork(Workday workday) throws IncoherentDataException {
         if (workday.isAccidentAtWork()) {
-
             if (workday.isHoliday()) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Accident at work is not coherent with holidays");
             }
             if (workday.isSick()) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Accident at work is not coherent with sickness");
             }
             if (workday.getWorkingHours() > 0) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Accident at work is not coherent with any working hours");
             }
             if (workday.getExtraHours() > 0) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Accident at work is not coherent with any extra hours");
             }
             if (workday.getWorkPermitHours() > 0) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Accident at work is not coherent with any work permit hours");
             }
 
         }
     }
 
-    private void checkUserSickness(Workday workday) {
+    private void checkUserSickness(Workday workday) throws IncoherentDataException {
         if (workday.isSick()) {
-
             if (workday.isHoliday()) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Sickness is not coherent with holidays");
             }
             if (workday.isAccidentAtWork()) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Sickness is not coherent with accident at work");
             }
             if (workday.getWorkingHours() > 0) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Sickness is not coherent with any working hours");
             }
             if (workday.getExtraHours() > 0) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Sickness is not coherent with any extra hours");
             }
             if (workday.getWorkPermitHours() > 0) {
-                throw new RuntimeException();
+                throw new IncoherentDataException("Sickness is not coherent with any work permit hours");
             }
-
         }
-
-
     }
 
     private void addUserToWorkday(Workday workday) {
