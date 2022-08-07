@@ -8,9 +8,10 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface WorkdayMapper {
 
-    @Mapping(target = "applicationUser", ignore = true)
+    @Mapping(source = "applicationUser.id",target = "usernameId")
     WorkdayDto toDto(Workday workday);
 
-    @Mapping(target = "applicationUser", ignore = true)
+    //FIXME find a way to map applicationUser without service usage
+    @Mapping(source = "usernameId", target = "applicationUser.id")
     Workday toModel(WorkdayDto dto);
 }

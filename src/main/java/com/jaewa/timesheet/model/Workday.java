@@ -20,11 +20,14 @@ public class Workday {
     private OffsetDateTime date;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "application_user")
+    @JoinColumn(name = "application_user", nullable = false)
     private ApplicationUser applicationUser;
 
     @Column(name = "working_hours", nullable = false)
     private int workingHours;
+
+    @Column(name = "extra_hours", nullable = false)
+    private int extraHours;
 
     @Column(name = "work_permit_hours", nullable = false)
     private int workPermitHours;

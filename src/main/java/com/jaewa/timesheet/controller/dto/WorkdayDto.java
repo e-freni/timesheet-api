@@ -15,7 +15,11 @@ public class WorkdayDto {
 
     private OffsetDateTime date;
 
+    private Long usernameId;
+
     private int workingHours;
+
+    private int extraHours;
 
     private int workPermitHours;
 

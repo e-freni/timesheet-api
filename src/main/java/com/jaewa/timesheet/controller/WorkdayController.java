@@ -5,11 +5,9 @@ import com.jaewa.timesheet.controller.mapper.WorkdayMapper;
 import com.jaewa.timesheet.model.Workday;
 import com.jaewa.timesheet.service.WorkdayService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,10 +25,9 @@ public class WorkdayController {
     }
 
     @GetMapping("/workday")
-    public ResponseEntity<List<WorkdayDto>> getUserWorkDays(
-            @RequestParam(value = "username") String username
+    public ResponseEntity<List<WorkdayDto>> getUserWorkDays(@RequestParam(value = "username") String username
     ) {
-
+        //TODO only admin or owner user can access data
         return ResponseEntity.ok(
                 workdayService.findWorkdayByUser(username).stream()
                         .map(workdayMapper::toDto)
@@ -38,8 +35,8 @@ public class WorkdayController {
     }
 
     @GetMapping("/workday/{id}")
-    public ResponseEntity<WorkdayDto> getWorkDay(
-            @PathVariable(value = "id") Long id) {
+    public ResponseEntity<WorkdayDto> getWorkDay(@PathVariable(value = "id") Long id) {
+        //TODO only admin or owner user can access data
         Optional<Workday> result = workdayService.findById(id);
 
         if (result.isEmpty()) {
@@ -47,5 +44,16 @@ public class WorkdayController {
         }
 
         return ResponseEntity.ok(workdayMapper.toDto(result.get()));
+    }
+
+    @PostMapping("/workday/new")
+    public ResponseEntity<WorkdayDto> addNewWorkday(@RequestBody WorkdayDto dto) {
+        //TODO only admin or owner user can add data
+        try{
+            Workday result = workdayService.addNewWorkday(workdayMapper.toModel(dto));
+            return ResponseEntity.ok(workdayMapper.toDto(result));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 }
