@@ -1,7 +1,6 @@
 package com.jaewa.timesheet.service;
 
 import com.jaewa.timesheet.exception.IncoherentDataException;
-import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.Workday;
 import com.jaewa.timesheet.model.repository.WorkdayRepository;
 import org.springframework.stereotype.Service;
@@ -16,12 +15,9 @@ public class WorkdayService {
 
     private final WorkdayRepository workdayRepository;
 
-    private final ApplicationUserService applicationUserService;
 
-
-    public WorkdayService(WorkdayRepository workdayRepository, ApplicationUserService applicationUserService) {
+    public WorkdayService(WorkdayRepository workdayRepository) {
         this.workdayRepository = workdayRepository;
-        this.applicationUserService = applicationUserService;
     }
 
     public List<Workday> findWorkdayByUser(String username) {
@@ -35,15 +31,17 @@ public class WorkdayService {
 
     public Workday addNewWorkday(Workday workday) throws IncoherentDataException {
 
-        addUserToWorkday(workday);
+        checkWorkdayCoherence(workday);
+        return workdayRepository.save(workday);
+    }
+
+    private void checkWorkdayCoherence(Workday workday) throws IncoherentDataException {
         checkUserSickness(workday);
         checkUserAccidentAtWork(workday);
         checkUserHoliday(workday);
         checkUserExtraHours(workday);
         checkUserWorkPermitHours(workday);
         checkUserNormalDayWork(workday);
-
-        return workdayRepository.save(workday);
     }
 
     private void checkUserNormalDayWork(Workday workday) throws IncoherentDataException {
@@ -60,6 +58,10 @@ public class WorkdayService {
             if (workday.getWorkPermitHours() > 0) {
                 throw new IncoherentDataException("8 working hours are not coherent with any work permit hours");
             }
+        }
+        if (workday.getWorkingHours() != 8 && !workday.isSick() && !workday.isHoliday() && !workday.isAccidentAtWork()
+                && workday.getWorkPermitHours() == 0 && workday.getFuneralLeaveHours() == 0) {
+            throw new IncoherentDataException("There are no conditions to log less than 8 working hours");
         }
     }
 
@@ -138,14 +140,24 @@ public class WorkdayService {
         }
     }
 
-    private void addUserToWorkday(Workday workday) {
-        Optional<ApplicationUser> user = applicationUserService.getById(workday.getApplicationUser().getId());
+    public Workday editWorkday(Workday workday) throws IncoherentDataException {
+        Optional<Workday> result = workdayRepository.findById(workday.getId());
 
-        if (user.isEmpty()) {
-            throw new EntityNotFoundException();
+        if (result.isEmpty()) {
+            throw new EntityNotFoundException("Can't find workday with id:" + workday.getId());
         }
 
-        workday.setApplicationUser(user.get());
+        checkWorkdayCoherence(workday);
+        return workdayRepository.save(workday);
     }
 
+    public void deleteWorkday(Workday workday) {
+        Optional<Workday> result = workdayRepository.findById(workday.getId());
+
+        if (result.isEmpty()) {
+            throw new EntityNotFoundException("Can't find workday with id:" + workday.getId());
+        }
+
+        workdayRepository.deleteById(workday.getId());
+    }
 }

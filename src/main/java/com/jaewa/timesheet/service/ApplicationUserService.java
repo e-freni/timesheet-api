@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.Optional;
 
 @Service
@@ -37,6 +38,15 @@ public class ApplicationUserService {
 
     public Optional<ApplicationUser> getById(Long id) {
         return applicationUserRepository.findById(id);
+    }
+    public ApplicationUser findById(Long id) {
+        Optional<ApplicationUser> optionalApplicationUser = applicationUserRepository.findById(id);
+
+        if(optionalApplicationUser.isEmpty()){
+            throw new EntityNotFoundException();
+        }
+
+        return optionalApplicationUser.get();
     }
 
     public Optional<ApplicationUser> getByUsername(String username) {

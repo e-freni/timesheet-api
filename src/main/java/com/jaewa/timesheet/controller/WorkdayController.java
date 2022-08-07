@@ -57,4 +57,26 @@ public class WorkdayController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    @PutMapping("/workday/edit")
+    public ResponseEntity<WorkdayDto> editWorkday(@RequestBody WorkdayDto dto) {
+        //TODO only admin or owner user can add data
+        try{
+            Workday result = workdayService.editWorkday(workdayMapper.toModel(dto));
+            return ResponseEntity.ok(workdayMapper.toDto(result));
+        } catch (EntityNotFoundException | IncoherentDataException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @DeleteMapping("/workday/delete")
+    public ResponseEntity<WorkdayDto> deleteWorkday(@RequestBody WorkdayDto dto) {
+        //TODO only admin or owner user can add data
+        try{
+            workdayService.deleteWorkday(workdayMapper.toModel(dto));
+            return ResponseEntity.ok().build();
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }
