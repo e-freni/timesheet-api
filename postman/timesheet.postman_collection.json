@@ -6,112 +6,267 @@
 	},
 	"item": [
 		{
-			"name": "getWorkdaysByUsername",
-			"event": [
+			"name": "Workday",
+			"item": [
 				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"pm.environment.get(\"jwtToken\");"
+					"name": "getWorkdaysByUsername",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.environment.get(\"jwtToken\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Bearer",
+								"value": "{{jwtToken}}",
+								"type": "default",
+								"disabled": true
+							}
 						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{jwtToken}}",
-							"type": "string"
+						"url": {
+							"raw": "localhost:8080/api/workday?username=efreni",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"workday"
+							],
+							"query": [
+								{
+									"key": "username",
+									"value": "efreni"
+								}
+							]
 						}
-					]
+					},
+					"response": []
 				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Bearer",
-						"value": "{{jwtToken}}",
-						"type": "default",
-						"disabled": true
-					}
-				],
-				"url": {
-					"raw": "localhost:8080/api/workday?username=efreni",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"api",
-						"workday"
-					],
-					"query": [
-						{
-							"key": "username",
-							"value": "efreni"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "getWorkdaysById",
-			"event": [
 				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"pm.environment.get(\"jwtToken\");"
+					"name": "getWorkdaysById",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.environment.get(\"jwtToken\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Bearer",
+								"value": "{{jwtToken}}",
+								"type": "default",
+								"disabled": true
+							}
 						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{jwtToken}}",
-							"type": "string"
+						"url": {
+							"raw": "localhost:8080/api/workday/2",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"workday",
+								"2"
+							],
+							"query": [
+								{
+									"key": "id",
+									"value": "2",
+									"disabled": true
+								}
+							]
 						}
-					]
+					},
+					"response": []
 				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "Bearer",
-						"value": "{{jwtToken}}",
-						"type": "default",
-						"disabled": true
-					}
-				],
-				"url": {
-					"raw": "localhost:8080/api/workday/2",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"api",
-						"workday",
-						"2"
-					],
-					"query": [
+				{
+					"name": "addWorkday",
+					"event": [
 						{
-							"key": "id",
-							"value": "2",
-							"disabled": true
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
 						}
-					]
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "    {\n        \"date\": \"2022-08-06\",\n        \"usernameId\": 1,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": false,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/workday/new",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"workday",
+								"new"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "editWorkday",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "    {\n        \"id\": \"1\",\n        \"date\": \"2022-08-06\",\n        \"usernameId\": 1,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": false,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/workday/edit",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"workday",
+								"edit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteWorkday",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "    {\n        \"id\": \"2\",\n        \"date\": \"2022-08-06\",\n        \"usernameId\": 1,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": true,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/workday/delete",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"workday",
+								"delete"
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		},
 		{
 			"name": "login",
@@ -153,56 +308,6 @@
 						"api",
 						"account",
 						"login"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "addWorkday",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{jwtToken}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "    {\n        \"date\": \"2022-08-06T12:13:15+02:00\",\n        \"usernameId\": 1,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": false,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "localhost:8080/api/workday/new",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"api",
-						"workday",
-						"new"
 					]
 				}
 			},

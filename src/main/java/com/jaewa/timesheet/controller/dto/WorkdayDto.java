@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDate;
 
 @Builder
 @Getter
@@ -13,7 +13,7 @@ public class WorkdayDto {
 
     private Long id;
 
-    private OffsetDateTime date;
+    private LocalDate date;
 
     private Long usernameId;
 

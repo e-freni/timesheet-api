@@ -8,7 +8,6 @@ import com.jaewa.timesheet.service.WorkdayService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -48,35 +47,23 @@ public class WorkdayController {
     }
 
     @PostMapping("/workday/new")
-    public ResponseEntity<WorkdayDto> addNewWorkday(@RequestBody WorkdayDto dto) {
+    public ResponseEntity<WorkdayDto> addNewWorkday(@RequestBody WorkdayDto dto) throws IncoherentDataException {
         //TODO only admin or owner user can add data
-        try{
-            Workday result = workdayService.addNewWorkday(workdayMapper.toModel(dto));
-            return ResponseEntity.ok(workdayMapper.toDto(result));
-        } catch (EntityNotFoundException | IncoherentDataException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        Workday result = workdayService.addNewWorkday(workdayMapper.toModel(dto));
+        return ResponseEntity.ok(workdayMapper.toDto(result));
     }
 
     @PutMapping("/workday/edit")
-    public ResponseEntity<WorkdayDto> editWorkday(@RequestBody WorkdayDto dto) {
+    public ResponseEntity<WorkdayDto> editWorkday(@RequestBody WorkdayDto dto) throws IncoherentDataException {
         //TODO only admin or owner user can add data
-        try{
-            Workday result = workdayService.editWorkday(workdayMapper.toModel(dto));
-            return ResponseEntity.ok(workdayMapper.toDto(result));
-        } catch (EntityNotFoundException | IncoherentDataException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        Workday result = workdayService.editWorkday(workdayMapper.toModel(dto));
+        return ResponseEntity.ok(workdayMapper.toDto(result));
     }
 
     @DeleteMapping("/workday/delete")
-    public ResponseEntity<WorkdayDto> deleteWorkday(@RequestBody WorkdayDto dto) {
+    public ResponseEntity<String> deleteWorkday(@RequestBody WorkdayDto dto) {
         //TODO only admin or owner user can add data
-        try{
-            workdayService.deleteWorkday(workdayMapper.toModel(dto));
-            return ResponseEntity.ok().build();
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        workdayService.deleteWorkday(workdayMapper.toModel(dto));
+        return ResponseEntity.ok().build();
     }
 }

@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.time.OffsetDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -17,7 +17,7 @@ public class Workday {
     private Long id;
 
     @Column(name = "date", nullable = false)
-    private OffsetDateTime date;
+    private LocalDate date;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "application_user", nullable = false)

@@ -31,6 +31,7 @@ public class WorkdayService {
 
     public Workday addNewWorkday(Workday workday) throws IncoherentDataException {
 
+        checkDateAlreadyLogged(workday);
         checkWorkdayCoherence(workday);
         return workdayRepository.save(workday);
     }
@@ -42,6 +43,15 @@ public class WorkdayService {
         checkUserExtraHours(workday);
         checkUserWorkPermitHours(workday);
         checkUserNormalDayWork(workday);
+    }
+
+    private void checkDateAlreadyLogged(Workday workday) throws IncoherentDataException {
+        Optional<Workday> result = workdayRepository.findByDateAndApplicationUserUsername(workday.getDate(), workday.getApplicationUser().getUsername());
+
+        if (result.isPresent()){
+            throw new IncoherentDataException(String.format("This day %s has already been logged", workday.getDate()));
+        }
+
     }
 
     private void checkUserNormalDayWork(Workday workday) throws IncoherentDataException {
