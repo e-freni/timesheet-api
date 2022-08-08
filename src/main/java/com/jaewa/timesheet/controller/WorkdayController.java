@@ -44,7 +44,8 @@ public class WorkdayController {
         AuthorizationService.checkUserIsAuthorized(user.get().getId());
 
         return ResponseEntity.ok(
-                workdayService.findWorkdayByUser(username).stream()
+                workdayService.findWorkdayByUser(username)
+                        .stream()
                         .map(workdayMapper::toDto)
                         .collect(Collectors.toList()));
     }
@@ -76,7 +77,7 @@ public class WorkdayController {
         return ResponseEntity.ok(workdayMapper.toDto(result));
     }
 
-    @DeleteMapping("/workday/delete")
+    @DeleteMapping("/workday/delete/")
     public ResponseEntity<String> deleteWorkday(@RequestBody WorkdayDto dto) throws UnauthorizedException {
         AuthorizationService.checkUserIsAuthorized(dto.getUsernameId());
         workdayService.deleteWorkday(workdayMapper.toModel(dto));

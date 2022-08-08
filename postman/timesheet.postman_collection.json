@@ -144,7 +144,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "    {\n        \"date\": \"2022-08-06\",\n        \"usernameId\": 1,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": false,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
+							"raw": "    {\n        \"date\": \"2022-08-13\",\n        \"usernameId\": 4,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": false,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -244,7 +244,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "    {\n        \"id\": \"2\",\n        \"date\": \"2022-08-06\",\n        \"usernameId\": 1,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": true,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
+							"raw": "    {\r\n        \"id\": \"2\",\r\n        \"date\": \"2022-08-06\",\r\n        \"usernameId\": 1,\r\n        \"workingHours\": 8,\r\n        \"extraHours\": 0,\r\n        \"workPermitHours\": 0,\r\n        \"funeralLeaveHours\": 0,\r\n        \"holiday\": false,\r\n        \"sick\": false,\r\n        \"accidentAtWork\": false,\r\n        \"notes\": \"una nota\"\r\n    }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -261,6 +261,188 @@
 								"api",
 								"workday",
 								"delete"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "findUsers",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/api/users",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getUser",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/api/users/1",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "addUser",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"firstName\": \"Enrico\",\r\n    \"lastName\": \"Freni\",\r\n    \"email\": \"enrico@frenii.it\",\r\n    \"username\": \"efrenii\",\r\n    \"role\": \"ADMINISTRATOR\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/users/new",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"new"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "editUser",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 6,\r\n    \"firstName\": \"Enricop\",\r\n    \"lastName\": \"Freni\",\r\n    \"email\": \"enrico@frenii.it\",\r\n    \"username\": \"efrenii\",\r\n    \"role\": \"ADMINISTRATOR\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/users/edit",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"edit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteUser",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"id\": 6,\r\n    \"firstName\": \"Enricop\",\r\n    \"lastName\": \"Freni\",\r\n    \"email\": \"enrico@frenii.it\",\r\n    \"username\": \"efrenii\",\r\n    \"role\": \"ADMINISTRATOR\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/users/delete/4",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"users",
+								"delete",
+								"4"
 							]
 						}
 					},
