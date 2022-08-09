@@ -3,13 +3,13 @@ package com.jaewa.timesheet.service;
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.UserRole;
 import com.jaewa.timesheet.model.repository.ApplicationUserRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.persistence.EntityNotFoundException;
 import java.util.Optional;
@@ -67,6 +67,11 @@ public class ApplicationUserService {
 
     public ApplicationUser addUser(ApplicationUser user, String password) {
         user.setPassword(passwordEncoder.encode(password));
+        return saveUser(user);
+    }
+
+    public ApplicationUser editUser(ApplicationUser user) {
+        changePassword(user.getUsername(), user.getPassword());
         return saveUser(user);
     }
 

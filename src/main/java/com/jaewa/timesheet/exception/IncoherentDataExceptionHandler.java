@@ -17,7 +17,7 @@ public class IncoherentDataExceptionHandler extends ResponseEntityExceptionHandl
     @ExceptionHandler(IncoherentDataException.class)
     protected ResponseEntity<Object> handleIncoherentData(IncoherentDataException ex) {
         ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, ex.getMessage());
-        logger.error(ex.getMessage());
+        log.error(ex.getMessage());
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 }

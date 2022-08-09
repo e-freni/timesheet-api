@@ -17,7 +17,7 @@ public class UnauthorizedExceptionHandler extends ResponseEntityExceptionHandler
     @ExceptionHandler(UnauthorizedException.class)
     protected ResponseEntity<Object> handleUnauthorizedAccess(UnauthorizedException ex) {
         ApiError apiError = new ApiError(HttpStatus.FORBIDDEN, ex.getMessage());
-        logger.error(ex.getMessage());
+        log.error(ex.getMessage());
         return new ResponseEntity<>(apiError, HttpStatus.FORBIDDEN);
     }
 }

@@ -9,7 +9,7 @@
 			"name": "Workday",
 			"item": [
 				{
-					"name": "getWorkdaysByUsername",
+					"name": "getUserWorkDays",
 					"event": [
 						{
 							"listen": "prerequest",
@@ -62,7 +62,7 @@
 					"response": []
 				},
 				{
-					"name": "getWorkdaysById",
+					"name": "getWorkDay",
 					"event": [
 						{
 							"listen": "prerequest",
@@ -95,7 +95,7 @@
 							}
 						],
 						"url": {
-							"raw": "localhost:8080/api/workday/2",
+							"raw": "localhost:8080/api/workday/3",
 							"host": [
 								"localhost"
 							],
@@ -103,7 +103,7 @@
 							"path": [
 								"api",
 								"workday",
-								"2"
+								"3"
 							],
 							"query": [
 								{
@@ -490,6 +490,51 @@
 						"api",
 						"account",
 						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "resetPassword",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let responseData=pm.response.json();",
+							"pm.environment.set(\"jwtToken\", responseData.jwt);",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "efrenii",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/api/account/resetPassword",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"account",
+						"resetPassword"
 					]
 				}
 			},

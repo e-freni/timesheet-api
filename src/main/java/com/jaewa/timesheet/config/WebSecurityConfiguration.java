@@ -41,7 +41,7 @@ public class WebSecurityConfiguration {
     public WebSecurityCustomizer webSecurityCustomizer() {
 
         return web -> web.ignoring()
-                .antMatchers("/account/login");
+                .antMatchers("/account/login", "/account/resetPassword");
     }
 
 }
