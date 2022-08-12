@@ -9,6 +9,6 @@ import lombok.Setter;
 @Builder
 public class TokenDto {
 
-    private String jwt;
+    private String token;
 
 }

@@ -386,7 +386,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"id\": 6,\r\n    \"firstName\": \"Enricop\",\r\n    \"lastName\": \"Freni\",\r\n    \"email\": \"enrico@frenii.it\",\r\n    \"username\": \"efrenii\",\r\n    \"role\": \"ADMINISTRATOR\"\r\n}",
+							"raw": "{\r\n    \"id\": 22,\r\n    \"firstName\": \"Enricop\",\r\n    \"lastName\": \"Freni\",\r\n    \"email\": \"enrico@freniii.it\",\r\n    \"username\": \"efreni_user\",\r\n    \"password\": \"pippo\",\r\n    \"role\": \"USER\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
