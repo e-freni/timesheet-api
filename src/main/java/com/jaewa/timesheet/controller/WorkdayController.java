@@ -32,7 +32,10 @@ public class WorkdayController {
     }
 
     @GetMapping("/workday")
-    public ResponseEntity<List<WorkdayDto>> getUserWorkDays(@RequestParam(value = "username") String username
+    public ResponseEntity<List<WorkdayDto>> getUserWorkDays(
+            @RequestParam(value = "username") String username,
+            @RequestParam(value = "fromDate") String fromDate ,
+            @RequestParam(value = "toDate") String toDate
     ) throws UnauthorizedException {
 
         Optional<ApplicationUser> user = applicationUserService.getByUsername(username);
@@ -44,7 +47,7 @@ public class WorkdayController {
         AuthorizationService.checkUserIsAuthorized(user.get().getId());
 
         return ResponseEntity.ok(
-                workdayService.findWorkdayByUser(username)
+                workdayService.findWorkdayByUser(username, fromDate, toDate)
                         .stream()
                         .map(workdayMapper::toDto)
                         .collect(Collectors.toList()));

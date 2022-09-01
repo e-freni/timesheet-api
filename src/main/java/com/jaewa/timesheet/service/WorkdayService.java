@@ -6,6 +6,8 @@ import com.jaewa.timesheet.model.repository.WorkdayRepository;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,9 +22,13 @@ public class WorkdayService {
         this.workdayRepository = workdayRepository;
     }
 
-    public List<Workday> findWorkdayByUser(String username) {
+    public List<Workday> findWorkdayByUser(String username, String fromDate, String toDate) {
 
-        return workdayRepository.findByApplicationUserUsername(username);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M/yyyy");
+        LocalDate from = LocalDate.parse(fromDate, formatter);
+        LocalDate to = LocalDate.parse(toDate, formatter);
+
+        return workdayRepository.findByApplicationUserUsernameAndDate(username, from, to);
     }
 
     public Optional<Workday> findById(Long id) {
