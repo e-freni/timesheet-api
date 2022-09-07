@@ -80,10 +80,11 @@ public class WorkdayController {
         return ResponseEntity.ok(workdayMapper.toDto(result));
     }
 
-    @DeleteMapping("/workday/delete/")
-    public ResponseEntity<String> deleteWorkday(@RequestBody WorkdayDto dto) throws UnauthorizedException {
-        AuthorizationService.checkUserIsAuthorized(dto.getUsernameId());
-        workdayService.deleteWorkday(workdayMapper.toModel(dto));
+    @DeleteMapping("/workday/{usernameId}/delete/{workdayId}")
+    public ResponseEntity<String> deleteWorkday(
+            @PathVariable(value = "usernameId") Long usernameId, @PathVariable(value = "workdayId") Long workdayId) throws UnauthorizedException {
+        AuthorizationService.checkUserIsAuthorized(usernameId);
+        workdayService.deleteWorkday(workdayId);
         return ResponseEntity.ok().build();
     }
 }

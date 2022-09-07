@@ -168,14 +168,14 @@ public class WorkdayService {
         return workdayRepository.save(workday);
     }
 
-    public void deleteWorkday(Workday workday) {
+    public void deleteWorkday(Long workdayId) {
 
-        Optional<Workday> result = workdayRepository.findById(workday.getId());
+        Optional<Workday> result = workdayRepository.findById(workdayId);
 
         if (result.isEmpty()) {
-            throw new EntityNotFoundException("Can't find workday with id:" + workday.getId());
+            throw new EntityNotFoundException("Can't find workday with id:" + workdayId);
         }
 
-        workdayRepository.deleteById(workday.getId());
+        workdayRepository.deleteById(workdayId);
     }
 }
