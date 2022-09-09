@@ -144,7 +144,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "    {\n        \"date\": \"2022-08-13\",\n        \"usernameId\": 4,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": false,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
+							"raw": "    {\n        \"date\": \"2022-08-13\",\n        \"userId\": 4,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": false,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -194,7 +194,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "    {\n        \"id\": \"1\",\n        \"date\": \"2022-08-06\",\n        \"usernameId\": 1,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": false,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
+							"raw": "    {\n        \"id\": \"1\",\n        \"date\": \"2022-08-06\",\n        \"userId\": 1,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": false,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -244,7 +244,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "    {\r\n        \"id\": \"2\",\r\n        \"date\": \"2022-08-06\",\r\n        \"usernameId\": 1,\r\n        \"workingHours\": 8,\r\n        \"extraHours\": 0,\r\n        \"workPermitHours\": 0,\r\n        \"funeralLeaveHours\": 0,\r\n        \"holiday\": false,\r\n        \"sick\": false,\r\n        \"accidentAtWork\": false,\r\n        \"notes\": \"una nota\"\r\n    }",
+							"raw": "    {\r\n        \"id\": \"2\",\r\n        \"date\": \"2022-08-06\",\r\n        \"userId\": 1,\r\n        \"workingHours\": 8,\r\n        \"extraHours\": 0,\r\n        \"workPermitHours\": 0,\r\n        \"funeralLeaveHours\": 0,\r\n        \"holiday\": false,\r\n        \"sick\": false,\r\n        \"accidentAtWork\": false,\r\n        \"notes\": \"una nota\"\r\n    }",
 							"options": {
 								"raw": {
 									"language": "json"

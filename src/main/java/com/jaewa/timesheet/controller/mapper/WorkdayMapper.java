@@ -9,10 +9,10 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {ApplicationUserService.class})
 public interface WorkdayMapper {
 
-    @Mapping(source = "applicationUser.id",target = "usernameId")
+    @Mapping(source = "applicationUser.id",target = "userId")
     WorkdayDto toDto(Workday workday);
 
-    @Mapping(source = "usernameId", target = "applicationUser")
+    @Mapping(source = "userId", target = "applicationUser")
     Workday toModel(WorkdayDto dto);
 
 }

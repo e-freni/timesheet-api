@@ -15,7 +15,7 @@ public class WorkdayDto {
 
     private LocalDate date;
 
-    private Long usernameId;
+    private Long userId;
 
     private int workingHours;
 
