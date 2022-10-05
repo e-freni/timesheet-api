@@ -13,7 +13,7 @@ class ExportServiceTest {
     @Autowired
     ExportService exportService;
 
-//    @Test FIXME not ready yett
+    @Test
     void export() throws IOException {
         exportService.export(2022, 9, 1L);
     }

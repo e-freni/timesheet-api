@@ -6,8 +6,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class TimesheetApplicationTests {
 
-//	@Test FIXME ignore for now
-//	void contextLoads() {
-//	}
+	@Test
+	void contextLoads() {
+	}
 
 }
