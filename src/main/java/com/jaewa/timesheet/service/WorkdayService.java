@@ -31,6 +31,11 @@ public class WorkdayService {
         return workdayRepository.findByApplicationUserUsernameAndDate(username, from, to);
     }
 
+    public List<Workday> findWorkdayByUser(String username, LocalDate fromDate, LocalDate toDate) {
+
+        return workdayRepository.findByApplicationUserUsernameAndDate(username, fromDate, toDate);
+    }
+
     public Optional<Workday> findById(Long id) {
         return workdayRepository.findById(id);
     }

@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.websocket.server.PathParam;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -97,7 +98,7 @@ public class WorkdayController {
     public ResponseEntity<String> exportMonthWorkdays(
             @PathVariable(value = "userId") Long userId,
             @PathParam(value = "year") Integer year,
-            @PathParam(value = "month") Integer month) throws UnauthorizedException {
+            @PathParam(value = "month") Integer month) throws UnauthorizedException, IOException { //FIXME
         AuthorizationService.checkUserIsAuthorized(userId);
         exportService.export(year, month, userId);
         return ResponseEntity.ok().build();
