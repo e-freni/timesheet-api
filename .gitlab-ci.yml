@@ -1,6 +1,5 @@
 stages:
-  - build
-  - upload
+
   - release
 
 variables:
@@ -8,28 +7,6 @@ variables:
   PACKAGE_BINARY: "/builds/eFreniDeveloper/timesheet-api/target/${PACKAGE_NAME}"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/timesheet-api/${CI_COMMIT_TAG}"
 
-create-artifact:
-  stage: build
-  image: maven:3.8.6-jdk-11
-  cache:
-    paths:
-      - .m2/repository
-  rules:
-    - if: $CI_COMMIT_TAG
-  artifacts:
-    paths:
-      - $PACKAGE_BINARY
-  script:
-    - 'mvn -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository clean install'
-
-upload:
-  stage: upload
-  image: curlimages/curl:latest
-  rules:
-    - if: $CI_COMMIT_TAG
-  script:
-    - |
-      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${PACKAGE_BINARY}" "${PACKAGE_REGISTRY_URL}/${PACKAGE_NAME}"
 
 release:
   stage: release
