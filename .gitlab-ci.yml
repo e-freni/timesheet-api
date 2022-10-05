@@ -1,7 +1,52 @@
-release:
+stages:
+  - build
+  - upload
+  - release
+
+variables:
+  PACKAGE_NAME: "timesheet-api-${CI_COMMIT_TAG}.zip"
+  PACKAGE_BINARY: ".m2/repository/mio/timesheet-api/${CI_COMMIT_TAG}/${PACKAGE_NAME}"
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/timesheet-api/${CI_COMMIT_TAG}"
+
+create-artifact:
+  stage: build
+  image: maven:3.8.6-jdk-11
+  cache:
+    paths:
+      - .m2/repository
+  rules:
+    - if: $CI_COMMIT_TAG
+  artifacts:
+    paths:
+      - $PACKAGE_BINARY
   script:
-    - echo "Create release"
+    - 'mvn -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository install -s ci_settings.xml'
+
+upload:
+  stage: upload
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - |
+      curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file "${CI_PROJECT_DIR}/${PACKAGE_BINARY}" "${PACKAGE_REGISTRY_URL}/${PACKAGE_NAME}"
+
+create-release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - echo "running release_job"
   release:
-    description: "Just a develop release"
-    name: 'My awesome release'
+    name: 'Release $CI_COMMIT_TAG'
+    description: 'Created using the release-cli $EXTRA_DESCRIPTION'
     tag_name: '$CI_COMMIT_TAG'
+    ref: '$CI_COMMIT_TAG'
+    assets:
+      links:
+        - name: '$PACKAGE_NAME'
+          url: '$PACKAGE_REGISTRY_URL/$PACKAGE_NAME'
+
+
+
