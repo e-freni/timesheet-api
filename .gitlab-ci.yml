@@ -4,7 +4,7 @@ stages:
   - release
 
 variables:
-  PACKAGE_NAME: "timesheet-api-${CI_COMMIT_TAG}-compressed.zip"
+  PACKAGE_NAME: "timesheet-${CI_COMMIT_TAG}-compressed.zip"
   PACKAGE_BINARY: "/builds/eFreniDeveloper/timesheet-api/target/${PACKAGE_NAME}"
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/timesheet-api/${CI_COMMIT_TAG}"
 
