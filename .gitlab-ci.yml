@@ -20,7 +20,7 @@ create-artifact:
     paths:
       - $PACKAGE_BINARY
   script:
-    - 'mvn -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository clean install package'
+    - 'mvn -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository clean install'
 
 upload:
   stage: upload
