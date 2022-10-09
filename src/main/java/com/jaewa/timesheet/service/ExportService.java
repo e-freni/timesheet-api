@@ -22,7 +22,7 @@ public class ExportService {
     public static final int INFO_PANEL_END_COLUMN = INFO_PANEL_START_COLUMN + 6;
     public static final int LAST_CELL_INDEX = 100;
     public static final int DAYS_HEADER_START_COLUMN = 1;
-    public static final int DAYS_HEADER_EMPTY_CELL = DAYS_HEADER_START_COLUMN + 2;
+    public static final int DAYS_HEADER_FIRST_EMPTY_CELL = DAYS_HEADER_START_COLUMN + 2;
     private static final int DAYS_HEADER_ROW = 3;
 
     private Integer year;
@@ -37,6 +37,8 @@ public class ExportService {
     }
 
     public void export(Integer year, Integer month, Long userId) throws IOException {
+
+        // TODO rendere workbook e sheet dei campi, che tanto vengono usati ovunque e non fanno altro che inquinare il codice
         XSSFWorkbook workbook = new XSSFWorkbook();
 
         this.year = year;
@@ -92,7 +94,7 @@ public class ExportService {
                 DAYS_HEADER_START_COLUMN, DAYS_HEADER_START_COLUMN + 1));
 
         cell.setCellValue("Nome");
-        cell = headerRow.createCell(DAYS_HEADER_EMPTY_CELL); //cella vuota prima dei giorni
+        cell = headerRow.createCell(DAYS_HEADER_FIRST_EMPTY_CELL); //cella vuota prima dei giorni
         cell.setCellStyle(getEmptyHeaderCellStyle(workbook));
 
 
@@ -100,16 +102,35 @@ public class ExportService {
         int daysInMonth = yearMonthObject.lengthOfMonth();
 
         for (int day = 1; day <= daysInMonth; day++) {
-            cell = headerRow.createCell(DAYS_HEADER_EMPTY_CELL + day);
+            cell = headerRow.createCell(DAYS_HEADER_FIRST_EMPTY_CELL + day);
             cell.setCellValue(day);
             cell.setCellStyle(getDayNumberHeaderCellStyle(workbook));
-            sheet.setColumnWidth(DAYS_HEADER_EMPTY_CELL + day, 1500);
+            sheet.setColumnWidth(DAYS_HEADER_FIRST_EMPTY_CELL + day, 1500);
         }
 
+        int daysHeaderLastEmptyCell = DAYS_HEADER_FIRST_EMPTY_CELL + daysInMonth + 1;
+        cell = headerRow.createCell(daysHeaderLastEmptyCell);
+        cell.setCellStyle(getDayNumberHeaderCellStyle(workbook));
+        sheet.setColumnWidth(daysHeaderLastEmptyCell, 200);
 
-//        cell = row.createCell(2);
-//        cell.setCellValue(20);
-//        cell.setCellStyle(style);
+        Cell workingHoursTotalCell = createTotalHeader(workbook, sheet, headerRow, daysHeaderLastEmptyCell, "Feriale");
+        Cell nonWorkingHoursTotalCell = createTotalHeader(workbook, sheet, headerRow, workingHoursTotalCell.getColumnIndex(), "Festivo", IndexedColors.LIGHT_YELLOW.getIndex());
+        Cell holidaysHoursTotalCell = createTotalHeader(workbook, sheet, headerRow, nonWorkingHoursTotalCell.getColumnIndex(), "Ferie", IndexedColors.LIGHT_GREEN.getIndex());
+        Cell sicknessHoursTotalCell = createTotalHeader(workbook, sheet, headerRow, holidaysHoursTotalCell.getColumnIndex(), "Malattia", IndexedColors.ROSE.getIndex());
+        Cell totalHoursTotalCell = createTotalHeader(workbook, sheet, headerRow, sicknessHoursTotalCell.getColumnIndex(), "Totali");
+        Cell aTotalCell = createTotalHeader(workbook, sheet, headerRow, totalHoursTotalCell.getColumnIndex(), "A");
+        createTotalHeader(workbook, sheet, headerRow, aTotalCell.getColumnIndex(), "B");
+    }
+
+
+    private Cell createTotalHeader(XSSFWorkbook workbook, Sheet sheet, Row headerRow, int referenceToPreviousCell, String title, Short... backgroundColor) {
+        Cell cell;
+        int totalCell = referenceToPreviousCell + 1;
+        cell = headerRow.createCell(totalCell);
+        cell.setCellValue(title);
+        cell.setCellStyle(getDayNumberHeaderCellStyle(workbook, backgroundColor));
+        sheet.setColumnWidth(totalCell, 2500);
+        return cell;
     }
 
     private void writeInfoPanel(XSSFWorkbook workbook, Sheet sheet, Row infoPanelRow) {
@@ -180,20 +201,26 @@ public class ExportService {
         return emptyHeaderCellStyle;
     }
 
-    private static CellStyle getDayNumberHeaderCellStyle(XSSFWorkbook workbook) {
-        CellStyle dayNumberHeaderCell =  workbook.createCellStyle();
-        dayNumberHeaderCell.setAlignment(HorizontalAlignment.CENTER);
-        dayNumberHeaderCell.setVerticalAlignment(VerticalAlignment.CENTER);
-        dayNumberHeaderCell.setBorderTop(BorderStyle.MEDIUM);
-        dayNumberHeaderCell.setBorderBottom(BorderStyle.MEDIUM);
-        dayNumberHeaderCell.setBorderLeft(BorderStyle.MEDIUM);
-        dayNumberHeaderCell.setBorderRight(BorderStyle.MEDIUM);
+    private static CellStyle getDayNumberHeaderCellStyle(XSSFWorkbook workbook, Short... backgroundColor) {
+        CellStyle dayNumberHeaderStyle =  workbook.createCellStyle();
+        dayNumberHeaderStyle.setAlignment(HorizontalAlignment.CENTER);
+        dayNumberHeaderStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        dayNumberHeaderStyle.setBorderTop(BorderStyle.MEDIUM);
+        dayNumberHeaderStyle.setBorderBottom(BorderStyle.MEDIUM);
+        dayNumberHeaderStyle.setBorderLeft(BorderStyle.MEDIUM);
+        dayNumberHeaderStyle.setBorderRight(BorderStyle.MEDIUM);
         XSSFFont font = workbook.createFont();
         font.setFontName("Arial");
         font.setFontHeightInPoints((short) 11);
         font.setBold(true);
-        dayNumberHeaderCell.setFont(font);
 
-        return dayNumberHeaderCell;
+        if(backgroundColor.length > 0){
+            dayNumberHeaderStyle.setFillForegroundColor(backgroundColor[0]);
+            dayNumberHeaderStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        }
+
+        dayNumberHeaderStyle.setFont(font);
+
+        return dayNumberHeaderStyle;
     }
 }
