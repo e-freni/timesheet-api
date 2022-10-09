@@ -30,6 +30,8 @@ public class ExportService {
 
     private final WorkdayService workdayService;
     private final ApplicationUserService applicationUserService;
+    private XSSFWorkbook workbook;
+    private Sheet sheet;
 
     public ExportService(WorkdayService workdayService, ApplicationUserService applicationUserService) {
         this.workdayService = workdayService;
@@ -39,19 +41,19 @@ public class ExportService {
     public void export(Integer year, Integer month, Long userId) throws IOException {
 
         // TODO rendere workbook e sheet dei campi, che tanto vengono usati ovunque e non fanno altro che inquinare il codice
-        XSSFWorkbook workbook = new XSSFWorkbook();
+        workbook = new XSSFWorkbook();
 
         this.year = year;
         this.month = month;
 
         ApplicationUser user = applicationUserService.findById(userId);
 
-        List<Workday> workdays = getWorkdays(year, month, user);
+        List<Workday> workdays = getWorkdays(user);
 
 
         //TODO find username by id
 
-        Sheet sheet = workbook.createSheet(String.format("%s_%s_%s_%s", user.getFirstName(), user.getLastName(), month, year));
+        sheet = workbook.createSheet(String.format("%s_%s_%s_%s", user.getFirstName(), user.getLastName(), this.month, this.year));
 
         sheet.setColumnWidth(0, 300);
 
@@ -62,14 +64,14 @@ public class ExportService {
 //        infoPanelStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
 
-        writeInfoPanel(workbook, sheet, infoPanelRow);
+        writeInfoPanel(infoPanelRow);
 
 
 //        infoPanelCell = infoPanelRow.createCell(2);
 //        infoPanelCell.setCellValue("Age");
 //        infoPanelCell.setCellStyle(infoPanelStyle);
 
-        writeHeader(workbook, sheet, workdays);
+        writeHeader(workdays);
 
         File currDir = new File(".");
         String path = currDir.getAbsolutePath();
@@ -80,14 +82,14 @@ public class ExportService {
         workbook.close();
     }
 
-    private void writeHeader(XSSFWorkbook workbook, Sheet sheet, List<Workday> workdays) {
+    private void writeHeader(List<Workday> workdays) {
         Row headerRow = sheet.createRow(DAYS_HEADER_ROW);
         Cell cell = headerRow.createCell(DAYS_HEADER_START_COLUMN);
-        cell.setCellStyle(getNameCellStyle(workbook));
+        cell.setCellStyle(getNameCellStyle());
 
         for (int i = DAYS_HEADER_START_COLUMN; i <= DAYS_HEADER_START_COLUMN + 1; i++) {
             Cell namePanelCellComplementary = headerRow.createCell(i);
-            namePanelCellComplementary.setCellStyle(getNameCellStyle(workbook));
+            namePanelCellComplementary.setCellStyle(getNameCellStyle());
         }
 
         sheet.addMergedRegion(new CellRangeAddress(DAYS_HEADER_ROW, DAYS_HEADER_ROW,
@@ -95,7 +97,7 @@ public class ExportService {
 
         cell.setCellValue("Nome");
         cell = headerRow.createCell(DAYS_HEADER_FIRST_EMPTY_CELL); //cella vuota prima dei giorni
-        cell.setCellStyle(getEmptyHeaderCellStyle(workbook));
+        cell.setCellStyle(getEmptyHeaderCellStyle());
 
 
         YearMonth yearMonthObject = YearMonth.of(year, month);
@@ -104,39 +106,39 @@ public class ExportService {
         for (int day = 1; day <= daysInMonth; day++) {
             cell = headerRow.createCell(DAYS_HEADER_FIRST_EMPTY_CELL + day);
             cell.setCellValue(day);
-            cell.setCellStyle(getDayNumberHeaderCellStyle(workbook));
+            cell.setCellStyle(getDayNumberHeaderCellStyle());
             sheet.setColumnWidth(DAYS_HEADER_FIRST_EMPTY_CELL + day, 1500);
         }
 
         int daysHeaderLastEmptyCell = DAYS_HEADER_FIRST_EMPTY_CELL + daysInMonth + 1;
         cell = headerRow.createCell(daysHeaderLastEmptyCell);
-        cell.setCellStyle(getDayNumberHeaderCellStyle(workbook));
+        cell.setCellStyle(getDayNumberHeaderCellStyle());
         sheet.setColumnWidth(daysHeaderLastEmptyCell, 200);
 
-        Cell workingHoursTotalCell = createTotalHeader(workbook, sheet, headerRow, daysHeaderLastEmptyCell, "Feriale");
-        Cell nonWorkingHoursTotalCell = createTotalHeader(workbook, sheet, headerRow, workingHoursTotalCell.getColumnIndex(), "Festivo", IndexedColors.LIGHT_YELLOW.getIndex());
-        Cell holidaysHoursTotalCell = createTotalHeader(workbook, sheet, headerRow, nonWorkingHoursTotalCell.getColumnIndex(), "Ferie", IndexedColors.LIGHT_GREEN.getIndex());
-        Cell sicknessHoursTotalCell = createTotalHeader(workbook, sheet, headerRow, holidaysHoursTotalCell.getColumnIndex(), "Malattia", IndexedColors.ROSE.getIndex());
-        Cell totalHoursTotalCell = createTotalHeader(workbook, sheet, headerRow, sicknessHoursTotalCell.getColumnIndex(), "Totali");
-        Cell aTotalCell = createTotalHeader(workbook, sheet, headerRow, totalHoursTotalCell.getColumnIndex(), "A");
-        createTotalHeader(workbook, sheet, headerRow, aTotalCell.getColumnIndex(), "B");
+        Cell workingHoursTotalCell = createTotalHeader(headerRow, daysHeaderLastEmptyCell, "Feriale");
+        Cell nonWorkingHoursTotalCell = createTotalHeader(headerRow, workingHoursTotalCell.getColumnIndex(), "Festivo", IndexedColors.LIGHT_YELLOW.getIndex());
+        Cell holidaysHoursTotalCell = createTotalHeader(headerRow, nonWorkingHoursTotalCell.getColumnIndex(), "Ferie", IndexedColors.LIGHT_GREEN.getIndex());
+        Cell sicknessHoursTotalCell = createTotalHeader(headerRow, holidaysHoursTotalCell.getColumnIndex(), "Malattia", IndexedColors.ROSE.getIndex());
+        Cell totalHoursTotalCell = createTotalHeader(headerRow, sicknessHoursTotalCell.getColumnIndex(), "Totali");
+        Cell aTotalCell = createTotalHeader(headerRow, totalHoursTotalCell.getColumnIndex(), "A");
+        createTotalHeader(headerRow, aTotalCell.getColumnIndex(), "B");
     }
 
 
-    private Cell createTotalHeader(XSSFWorkbook workbook, Sheet sheet, Row headerRow, int referenceToPreviousCell, String title, Short... backgroundColor) {
+    private Cell createTotalHeader(Row headerRow, int referenceToPreviousCell, String title, Short... backgroundColor) {
         Cell cell;
         int totalCell = referenceToPreviousCell + 1;
         cell = headerRow.createCell(totalCell);
         cell.setCellValue(title);
-        cell.setCellStyle(getDayNumberHeaderCellStyle(workbook, backgroundColor));
+        cell.setCellStyle(getDayNumberHeaderCellStyle(backgroundColor));
         sheet.setColumnWidth(totalCell, 2500);
         return cell;
     }
 
-    private void writeInfoPanel(XSSFWorkbook workbook, Sheet sheet, Row infoPanelRow) {
+    private void writeInfoPanel(Row infoPanelRow) {
         for (int i = INFO_PANEL_START_COLUMN; i <= INFO_PANEL_END_COLUMN; i++) {
             Cell infoPanelCellComplementary = infoPanelRow.createCell(i);
-            infoPanelCellComplementary.setCellStyle(getInfoPanelStyle(workbook));
+            infoPanelCellComplementary.setCellStyle(getInfoPanelStyle());
         }
 
         Cell infoPanelCell = infoPanelRow.createCell(INFO_PANEL_START_COLUMN); //skip prima linea
@@ -144,10 +146,10 @@ public class ExportService {
         infoPanelCell.setCellValue("A= ore complessive B= ore lavorare senza ferie e straordinari");
         sheet.addMergedRegion(new CellRangeAddress(1, 1, INFO_PANEL_START_COLUMN, INFO_PANEL_END_COLUMN));
 
-        infoPanelCell.setCellStyle(getInfoPanelStyle(workbook));
+        infoPanelCell.setCellStyle(getInfoPanelStyle());
     }
 
-    private List<Workday> getWorkdays(Integer year, Integer month, ApplicationUser user) {
+    private List<Workday> getWorkdays(ApplicationUser user) {
         LocalDate date = LocalDate.of(year, month, 1);
         LocalDate from = date.withDayOfMonth(1);
         LocalDate to = date.withDayOfMonth(date.getMonth().length(date.isLeapYear()));
@@ -155,7 +157,7 @@ public class ExportService {
         return workdayService.findWorkdayByUser(user.getUsername(), from, to);
     }
 
-    private static CellStyle getInfoPanelStyle(XSSFWorkbook workbook) {
+    private CellStyle getInfoPanelStyle() {
         CellStyle infoPanelStyle = workbook.createCellStyle();
         infoPanelStyle.setWrapText(true);
         infoPanelStyle.setAlignment(HorizontalAlignment.CENTER);
@@ -173,7 +175,7 @@ public class ExportService {
         return infoPanelStyle;
     }
 
-    private static CellStyle getNameCellStyle(XSSFWorkbook workbook) {
+    private CellStyle getNameCellStyle() {
         CellStyle nameCellStyle = workbook.createCellStyle();
         nameCellStyle.setWrapText(true);
         XSSFFont font = workbook.createFont();
@@ -191,8 +193,8 @@ public class ExportService {
         return nameCellStyle;
     }
 
-    private static CellStyle getEmptyHeaderCellStyle(XSSFWorkbook workbook) {
-        CellStyle emptyHeaderCellStyle =  workbook.createCellStyle();
+    private CellStyle getEmptyHeaderCellStyle() {
+        CellStyle emptyHeaderCellStyle = workbook.createCellStyle();
         emptyHeaderCellStyle.setBorderTop(BorderStyle.MEDIUM);
         emptyHeaderCellStyle.setBorderBottom(BorderStyle.MEDIUM);
         emptyHeaderCellStyle.setBorderLeft(BorderStyle.THIN);
@@ -201,8 +203,8 @@ public class ExportService {
         return emptyHeaderCellStyle;
     }
 
-    private static CellStyle getDayNumberHeaderCellStyle(XSSFWorkbook workbook, Short... backgroundColor) {
-        CellStyle dayNumberHeaderStyle =  workbook.createCellStyle();
+    private CellStyle getDayNumberHeaderCellStyle(Short... backgroundColor) {
+        CellStyle dayNumberHeaderStyle = workbook.createCellStyle();
         dayNumberHeaderStyle.setAlignment(HorizontalAlignment.CENTER);
         dayNumberHeaderStyle.setVerticalAlignment(VerticalAlignment.CENTER);
         dayNumberHeaderStyle.setBorderTop(BorderStyle.MEDIUM);
@@ -214,7 +216,8 @@ public class ExportService {
         font.setFontHeightInPoints((short) 11);
         font.setBold(true);
 
-        if(backgroundColor.length > 0){
+        //XXX fake array to allow optional parameter
+        if (backgroundColor.length > 0) {
             dayNumberHeaderStyle.setFillForegroundColor(backgroundColor[0]);
             dayNumberHeaderStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         }
