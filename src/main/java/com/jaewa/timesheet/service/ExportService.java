@@ -13,25 +13,35 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
 public class ExportService {
 
-    public static final int INFO_PANEL_START_COLUMN = 36;
+    public static final int INFO_PANEL_START_COLUMN = 35;
     public static final int INFO_PANEL_END_COLUMN = INFO_PANEL_START_COLUMN + 6;
     public static final int LAST_CELL_INDEX = 100;
-    public static final int DAYS_HEADER_START_COLUMN = 1;
-    public static final int DAYS_HEADER_FIRST_EMPTY_CELL = DAYS_HEADER_START_COLUMN + 2;
+    public static final int DAYS_START_COLUMN = 1;
+    public static final int MORNING_HOUR_LABEL = DAYS_START_COLUMN + 1;
+    public static final int DAYS_HEADER_FIRST_EMPTY_CELL = DAYS_START_COLUMN + 1;
     private static final int DAYS_HEADER_ROW = 3;
 
-    private Integer year;
-    private Integer month;
+    private static final int MORNING_HOURS_ROW = 4;
 
-    private final WorkdayService workdayService;
-    private final ApplicationUserService applicationUserService;
+    private static final int NIGHT_HOURS_ROW = 5;
+
+    private static final int EXTRA_HOURS_ROW = 6;
+
+    private static final int NOTES_ROW = 7;
+
+    private Integer exportYear;
+    private Integer exportMonth;
     private XSSFWorkbook workbook;
     private Sheet sheet;
+    private final WorkdayService workdayService;
+    private final ApplicationUserService applicationUserService;
+
 
     public ExportService(WorkdayService workdayService, ApplicationUserService applicationUserService) {
         this.workdayService = workdayService;
@@ -40,11 +50,10 @@ public class ExportService {
 
     public void export(Integer year, Integer month, Long userId) throws IOException {
 
-        // TODO rendere workbook e sheet dei campi, che tanto vengono usati ovunque e non fanno altro che inquinare il codice
         workbook = new XSSFWorkbook();
 
-        this.year = year;
-        this.month = month;
+        this.exportYear = year;
+        this.exportMonth = month;
 
         ApplicationUser user = applicationUserService.findById(userId);
 
@@ -53,7 +62,7 @@ public class ExportService {
 
         //TODO find username by id
 
-        sheet = workbook.createSheet(String.format("%s_%s_%s_%s", user.getFirstName(), user.getLastName(), this.month, this.year));
+        sheet = workbook.createSheet(String.format("%s_%s_%s_%s", user.getFirstName(), user.getLastName(), this.exportMonth, this.exportYear));
 
         sheet.setColumnWidth(0, 300);
 
@@ -72,6 +81,7 @@ public class ExportService {
 //        infoPanelCell.setCellStyle(infoPanelStyle);
 
         writeHeader(workdays);
+        writeMorningHours(workdays);
 
         File currDir = new File(".");
         String path = currDir.getAbsolutePath();
@@ -82,37 +92,126 @@ public class ExportService {
         workbook.close();
     }
 
+    private void writeMorningHours(List<Workday> workdays) {
+        Row headerRow = sheet.createRow(MORNING_HOURS_ROW);
+        Cell morningHourCell = headerRow.createCell(DAYS_START_COLUMN);
+        morningHourCell.setCellStyle(getMorningHourLabelStyle(true));
+        headerRow.setHeight((short) 500);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/yyyy");
+        morningHourCell.setCellValue(LocalDate.of(exportYear, exportMonth, 1).format(formatter));
+        Cell morningHourLabelCell = headerRow.createCell(MORNING_HOUR_LABEL);
+        morningHourLabelCell.setCellStyle(getMorningHourLabelStyle(false));
+        morningHourLabelCell.setCellValue("Ore diurne");
+
+        int daysInMonth = getDaysInMonth();
+
+
+        boolean isPermitDay = false;
+
+        for (int i = 1; i <= daysInMonth; i++) {
+            if (isPermitDay) {
+                isPermitDay = false;
+                continue;
+            }
+            Cell cell = headerRow.createCell(MORNING_HOUR_LABEL + i);
+            CellStyle hoursCellStyle = workbook.createCellStyle();
+            hoursCellStyle.setAlignment(HorizontalAlignment.CENTER);
+            hoursCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            hoursCellStyle.setBorderBottom(BorderStyle.THIN);
+            hoursCellStyle.setBorderLeft(BorderStyle.THIN);
+            hoursCellStyle.setBorderRight(BorderStyle.THIN);
+
+            int currentIterationDay = i;
+            Workday selectedDay = workdays.stream()
+                    .filter(day -> day.getDate().equals(LocalDate.of(exportYear, exportMonth, currentIterationDay)))
+                    .findAny().orElse(new Workday());
+
+            if (selectedDay.isHoliday()) {
+                cell.setCellValue(8);
+                hoursCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                hoursCellStyle.setFillForegroundColor( IndexedColors.LIGHT_GREEN.getIndex());
+            }
+
+            if (selectedDay.isSick()) {
+                cell.setCellValue(8);
+                hoursCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                hoursCellStyle.setFillForegroundColor( IndexedColors.ROSE.getIndex());
+            }
+
+            if (selectedDay.isAccidentAtWork()) {
+                cell.setCellValue("I");
+            }
+
+            if (selectedDay.getFuneralLeaveHours() > 0) {
+                cell.setCellValue("PL");
+                //FIXME funeral leave is treated as a boolean in the real model, but funeral leaves are fractional, so?
+            }
+
+            if (selectedDay.getWorkingHours() > 0) {
+                cell.setCellValue(selectedDay.getWorkingHours());
+
+            }
+
+            if (selectedDay.getWorkPermitHours() > 0) {
+                cell = headerRow.createCell(MORNING_HOUR_LABEL + i + 1);
+                cell.setCellValue(selectedDay.getWorkPermitHours());
+                hoursCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                hoursCellStyle.setFillForegroundColor( IndexedColors.OLIVE_GREEN.getIndex());
+                isPermitDay = true;
+            }
+
+            cell.setCellStyle(hoursCellStyle);
+
+
+        }
+
+    }
+
+
     private void writeHeader(List<Workday> workdays) {
         Row headerRow = sheet.createRow(DAYS_HEADER_ROW);
-        Cell cell = headerRow.createCell(DAYS_HEADER_START_COLUMN);
-        cell.setCellStyle(getNameCellStyle());
+        Cell headerCell = headerRow.createCell(DAYS_START_COLUMN);
+        headerCell.setCellStyle(getNameCellStyle());
+        headerRow.setHeight((short) 500);
 
-        for (int i = DAYS_HEADER_START_COLUMN; i <= DAYS_HEADER_START_COLUMN + 1; i++) {
+
+        for (int i = DAYS_START_COLUMN; i <= DAYS_START_COLUMN + 1; i++) {
             Cell namePanelCellComplementary = headerRow.createCell(i);
             namePanelCellComplementary.setCellStyle(getNameCellStyle());
         }
 
-        sheet.addMergedRegion(new CellRangeAddress(DAYS_HEADER_ROW, DAYS_HEADER_ROW,
-                DAYS_HEADER_START_COLUMN, DAYS_HEADER_START_COLUMN + 1));
 
-        cell.setCellValue("Nome");
-        cell = headerRow.createCell(DAYS_HEADER_FIRST_EMPTY_CELL); //cella vuota prima dei giorni
-        cell.setCellStyle(getEmptyHeaderCellStyle());
+        headerCell.setCellValue("Nome");
+        sheet.setColumnWidth(DAYS_START_COLUMN, 7000);
+        headerCell = headerRow.createCell(DAYS_HEADER_FIRST_EMPTY_CELL); //cella vuota prima dei giorni
+        sheet.setColumnWidth(DAYS_HEADER_FIRST_EMPTY_CELL, 4000);
+        headerCell.setCellStyle(getEmptyHeaderCellStyle());
 
 
-        YearMonth yearMonthObject = YearMonth.of(year, month);
-        int daysInMonth = yearMonthObject.lengthOfMonth();
+        int daysInMonth = getDaysInMonth();
 
-        for (int day = 1; day <= daysInMonth; day++) {
-            cell = headerRow.createCell(DAYS_HEADER_FIRST_EMPTY_CELL + day);
-            cell.setCellValue(day);
-            cell.setCellStyle(getDayNumberHeaderCellStyle());
-            sheet.setColumnWidth(DAYS_HEADER_FIRST_EMPTY_CELL + day, 1500);
+        for (int calendarDay = 1; calendarDay <= daysInMonth; calendarDay++) {
+
+            int currentIterationDay = calendarDay;
+
+            Workday selectedDay = workdays.stream()
+                    .filter(day -> day.getDate().equals(LocalDate.of(exportYear, exportMonth, currentIterationDay)))
+                    .findAny().orElse(new Workday());
+
+            if (selectedDay.getWorkPermitHours() > 0) {
+                sheet.addMergedRegion(new CellRangeAddress(DAYS_HEADER_ROW, DAYS_HEADER_ROW, DAYS_HEADER_FIRST_EMPTY_CELL + calendarDay, DAYS_HEADER_FIRST_EMPTY_CELL + + calendarDay + 1));
+            }
+
+            headerCell = headerRow.createCell(DAYS_HEADER_FIRST_EMPTY_CELL + calendarDay);
+            headerCell.setCellValue(calendarDay);
+            headerCell.setCellStyle(getDayNumberHeaderCellStyle());
+            sheet.setColumnWidth(DAYS_HEADER_FIRST_EMPTY_CELL + calendarDay, 1500);
         }
 
         int daysHeaderLastEmptyCell = DAYS_HEADER_FIRST_EMPTY_CELL + daysInMonth + 1;
-        cell = headerRow.createCell(daysHeaderLastEmptyCell);
-        cell.setCellStyle(getDayNumberHeaderCellStyle());
+        headerCell = headerRow.createCell(daysHeaderLastEmptyCell);
+        headerCell.setCellStyle(getDayNumberHeaderCellStyle());
         sheet.setColumnWidth(daysHeaderLastEmptyCell, 200);
 
         Cell workingHoursTotalCell = createTotalHeader(headerRow, daysHeaderLastEmptyCell, "Feriale");
@@ -122,6 +221,10 @@ public class ExportService {
         Cell totalHoursTotalCell = createTotalHeader(headerRow, sicknessHoursTotalCell.getColumnIndex(), "Totali");
         Cell aTotalCell = createTotalHeader(headerRow, totalHoursTotalCell.getColumnIndex(), "A");
         createTotalHeader(headerRow, aTotalCell.getColumnIndex(), "B");
+    }
+
+    private int getDaysInMonth() {
+        return YearMonth.of(exportYear, exportMonth).lengthOfMonth();
     }
 
 
@@ -150,7 +253,7 @@ public class ExportService {
     }
 
     private List<Workday> getWorkdays(ApplicationUser user) {
-        LocalDate date = LocalDate.of(year, month, 1);
+        LocalDate date = LocalDate.of(exportYear, exportMonth, 1);
         LocalDate from = date.withDayOfMonth(1);
         LocalDate to = date.withDayOfMonth(date.getMonth().length(date.isLeapYear()));
 
@@ -179,7 +282,7 @@ public class ExportService {
         CellStyle nameCellStyle = workbook.createCellStyle();
         nameCellStyle.setWrapText(true);
         XSSFFont font = workbook.createFont();
-        font.setFontHeightInPoints((short) 16);
+        font.setFontHeightInPoints((short) 14);
         font.setBold(true);
         font.setColor(IndexedColors.RED.getIndex());
         nameCellStyle.setFont(font);
@@ -212,7 +315,6 @@ public class ExportService {
         dayNumberHeaderStyle.setBorderLeft(BorderStyle.MEDIUM);
         dayNumberHeaderStyle.setBorderRight(BorderStyle.MEDIUM);
         XSSFFont font = workbook.createFont();
-        font.setFontName("Arial");
         font.setFontHeightInPoints((short) 11);
         font.setBold(true);
 
@@ -226,4 +328,22 @@ public class ExportService {
 
         return dayNumberHeaderStyle;
     }
+
+    private CellStyle getMorningHourLabelStyle(boolean bold) {
+        CellStyle dateHeaderStyle = workbook.createCellStyle();
+        dateHeaderStyle.setAlignment(HorizontalAlignment.CENTER);
+        dateHeaderStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        dateHeaderStyle.setBorderTop(BorderStyle.MEDIUM);
+        dateHeaderStyle.setBorderLeft(BorderStyle.MEDIUM);
+        dateHeaderStyle.setBorderRight(BorderStyle.MEDIUM);
+        XSSFFont font = workbook.createFont();
+        font.setFontHeightInPoints((short) 12);
+        if (bold) {
+            font.setBold(true);
+        }
+        dateHeaderStyle.setFont(font);
+
+        return dateHeaderStyle;
+    }
+
 }
