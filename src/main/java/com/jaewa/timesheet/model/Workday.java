@@ -32,6 +32,9 @@ public class Workday {
     @Column(name = "work_permit_hours", nullable = false)
     private int workPermitHours;
 
+    @Column(name = "night_working_hours", nullable = false)
+    private int nightWorkingHours;
+
     @Column(name = "funeral_leave_hours", nullable = false)
     private int funeralLeaveHours;
 
