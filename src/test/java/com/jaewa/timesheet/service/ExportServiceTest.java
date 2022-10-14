@@ -1,6 +1,5 @@
 package com.jaewa.timesheet.service;
 
-import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,6 +14,6 @@ class ExportServiceTest {
 
     @Test
     void export() throws IOException {
-        exportService.export(2022, 10, 1L);
+        exportService.export(2022, 10, 2L);
     }
 }

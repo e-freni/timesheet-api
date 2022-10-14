@@ -31,6 +31,12 @@ public class ExportService {
     private static final int NIGHT_HOURS_ROW = 5;
     private static final int EXTRA_HOURS_ROW = 6;
     private static final int NOTES_ROW = 7;
+    private static final int LEGEND_FIRST_ROW = 11;
+    private static final int LEGEND_SECOND_ROW = 13;
+    private static final int LEGEND_FIRST_COLUMN = 3;
+    private static final int LEGEND_MIDDLE_COLUMN = 11;
+    private static final int LEGEND_LAST_COLUMN = 19;
+
     private final WorkdayService workdayService;
     private final ApplicationUserService applicationUserService;
     private Integer exportYear;
@@ -53,9 +59,6 @@ public class ExportService {
 
         ApplicationUser user = applicationUserService.findById(userId);
 
-
-        //TODO find username by id
-
         sheet = workbook.createSheet(String.format("%s_%s_%s_%s", user.getFirstName(), user.getLastName(), this.exportMonth, this.exportYear));
 
         sheet.setColumnWidth(0, 300);
@@ -70,7 +73,7 @@ public class ExportService {
         writeNightHours(workdays, user);
         writeExtraHours(workdays);
         writeNotes(workdays);
-        writeLegend(workdays);
+        writeLegend();
 
         File currDir = new File(".");
         String path = currDir.getAbsolutePath();
@@ -119,12 +122,7 @@ public class ExportService {
 
         for (int calendarDay = 1; calendarDay <= daysInMonth; calendarDay++) {
 
-            int currentIterationDay = calendarDay;
-
-            Workday selectedDay = workdays.stream()
-                    .filter(day -> day.getDate().equals(LocalDate.of(exportYear, exportMonth, currentIterationDay)))
-                    .findAny().orElse(new Workday());
-
+            Workday selectedDay = getSelectedDay(workdays, calendarDay);
             headerCell = headerRow.createCell(DAYS_HEADER_FIRST_EMPTY_CELL + notEntirePermitDays + calendarDay);
             headerCell.setCellValue(calendarDay);
             headerCell.setCellStyle(getDayNumberHeaderCellStyle());
@@ -175,16 +173,13 @@ public class ExportService {
         for (int i = 1; i <= daysInMonth; i++) {
             Cell cell = hoursRow.createCell(HOUR_LABEL + i + notEntirePermitDays);
             CellStyle hoursCellStyle = workbook.createCellStyle();
-            hoursCellStyle.setAlignment(HorizontalAlignment.CENTER);
-            hoursCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            setStandardTextAlignment(hoursCellStyle);
+            hoursCellStyle.setBorderTop(BorderStyle.THIN);
             hoursCellStyle.setBorderBottom(BorderStyle.THIN);
             hoursCellStyle.setBorderLeft(BorderStyle.THIN);
             hoursCellStyle.setBorderRight(BorderStyle.THIN);
 
-            int currentIterationDay = i;
-            Workday selectedDay = workdays.stream()
-                    .filter(day -> day.getDate().equals(LocalDate.of(exportYear, exportMonth, currentIterationDay)))
-                    .findAny().orElse(new Workday());
+            Workday selectedDay = getSelectedDay(workdays, i);
 
             addHoliday(cell, hoursCellStyle, selectedDay);
 
@@ -196,7 +191,7 @@ public class ExportService {
 
             addWorkingHours(cell, selectedDay);
 
-            notEntirePermitDays = handlePermitDayHours(hoursRow, notEntirePermitDays, i, hoursCellStyle, selectedDay);
+            notEntirePermitDays = handlePermitDayHoursOnMorningRow(hoursRow, notEntirePermitDays, i, hoursCellStyle, selectedDay);
 
             cell.setCellStyle(hoursCellStyle);
 
@@ -238,6 +233,9 @@ public class ExportService {
 
         Cell totalACell = createTotalCell(hoursRow, totalHoursTotalCell.getColumnIndex(), totalA);
 
+        int mergeColumn = totalACell.getColumnIndex();
+        sheet.addMergedRegion(new CellRangeAddress(MORNING_HOURS_ROW, EXTRA_HOURS_ROW, mergeColumn, mergeColumn));
+
         int totalNightHours = workdays.stream()
                 .map(Workday::getNightWorkingHours)
                 .mapToInt(w -> w).sum();
@@ -250,38 +248,140 @@ public class ExportService {
 
         int totalB = totalWorkingHours + totalNightHours + totalNonWorkingDayHours + totalNightNonWorkingDayHours;
 
-        createTotalCell(hoursRow, totalACell.getColumnIndex(), totalB);
+        Cell totalBCell = createTotalCell(hoursRow, totalACell.getColumnIndex(), totalB);
+
+        mergeColumn = totalBCell.getColumnIndex();
+        sheet.addMergedRegion(new CellRangeAddress(MORNING_HOURS_ROW, EXTRA_HOURS_ROW, mergeColumn, mergeColumn));
 
     }
 
-
     private void writeNightHours(List<Workday> workdays, ApplicationUser user) {
-        Row hoursRow = sheet.createRow(NIGHT_HOURS_ROW);
-        Cell userFullNameCell = hoursRow.createCell(DAYS_START_COLUMN);
+        Row nightHoursRow = sheet.createRow(NIGHT_HOURS_ROW);
+        Cell userFullNameCell = nightHoursRow.createCell(DAYS_START_COLUMN);
         userFullNameCell.setCellStyle(getHourLabelStyle(true));
-        hoursRow.setHeight((short) 500);
+        nightHoursRow.setHeight((short) 500);
 
         userFullNameCell.setCellValue(String.format("%s %s", user.getFirstName(), user.getLastName()));
         sheet.addMergedRegion(new CellRangeAddress(NIGHT_HOURS_ROW, NOTES_ROW, DAYS_START_COLUMN, DAYS_START_COLUMN));
-        Cell nightHourLabelCell = hoursRow.createCell(HOUR_LABEL);
+        Cell nightHourLabelCell = nightHoursRow.createCell(HOUR_LABEL);
         nightHourLabelCell.setCellStyle(getHourLabelStyle(false));
         nightHourLabelCell.setCellValue("Ore notturne");
 
-        //TODO write nightWorkingHours
+        int daysInMonth = getDaysInMonth();
+
+        int notEntirePermitDays = 0;
+        for (int i = 1; i <= daysInMonth; i++) {
+            Cell cell = nightHoursRow.createCell(HOUR_LABEL + i + notEntirePermitDays);
+            CellStyle nightHoursCellStyle = workbook.createCellStyle();
+            setStandardTextAlignment(nightHoursCellStyle);
+            nightHoursCellStyle.setBorderBottom(BorderStyle.THIN);
+            nightHoursCellStyle.setBorderLeft(BorderStyle.THIN);
+            nightHoursCellStyle.setBorderRight(BorderStyle.THIN);
+            setRedFontStyle(nightHoursCellStyle);
+
+            Workday selectedDay = getSelectedDay(workdays, i);
+
+            notEntirePermitDays = handleMergedCells(nightHoursRow, notEntirePermitDays, i, nightHoursCellStyle, selectedDay, NIGHT_HOURS_ROW, DAYS_HEADER_FIRST_EMPTY_CELL);
+
+            cell.setCellStyle(nightHoursCellStyle);
+
+            addNightWorkingHours(cell, selectedDay);
+        }
+
+        int daysHeaderLastEmptyCell = writeSeparatorCell(nightHoursRow, daysInMonth + notEntirePermitDays);
+
+        int totalNightWorkingHours = workdays.stream()
+                .map(Workday::getNightWorkingHours)
+                .mapToInt(w -> w).sum();
+
+        Cell nightWorkingHoursTotalCell = createTotalCell(nightHoursRow, daysHeaderLastEmptyCell, totalNightWorkingHours);
+        XSSFFont font = setRedFontForTotals(nightWorkingHoursTotalCell);
+
+        Cell nonWorkingHoursTotalCell = createTotalCell(nightHoursRow, nightWorkingHoursTotalCell.getColumnIndex(), "", IndexedColors.LIGHT_YELLOW.getIndex());
+        nonWorkingHoursTotalCell.getCellStyle().setFont(font);
+
+        int firstMergeColumn = nonWorkingHoursTotalCell.getColumnIndex() + 1;
+        int secondMergeColumn = firstMergeColumn + 1;
+        sheet.addMergedRegion(new CellRangeAddress(NIGHT_HOURS_ROW, EXTRA_HOURS_ROW, firstMergeColumn, secondMergeColumn));
+
+        Cell nightHoursTotalCellCopy = createTotalCell(nightHoursRow, secondMergeColumn, totalNightWorkingHours);
+        nightHoursTotalCellCopy.getCellStyle().setFont(font);
+    }
+
+    private void setRedFontStyle(CellStyle notesCellStyle) {
+        XSSFFont font = workbook.createFont();
+        font.setColor(IndexedColors.RED.getIndex());
+        font.setFontHeightInPoints((short) 10);
+        notesCellStyle.setFont(font);
+    }
+
+    private XSSFFont setRedFontForTotals(Cell nightWorkingHoursTotalCell) {
+        XSSFFont font = workbook.createFont();
+        font.setFontHeightInPoints((short) 11);
+        font.setBold(true);
+        font.setColor(IndexedColors.RED.getIndex());
+        nightWorkingHoursTotalCell.getCellStyle().setFont(font);
+        return font;
+    }
+
+    private Workday getSelectedDay(List<Workday> workdays, int currentIterationDay) {
+        return workdays.stream()
+                .filter(day -> day.getDate().equals(LocalDate.of(exportYear, exportMonth, currentIterationDay)))
+                .findAny().orElse(new Workday());
     }
 
     private void writeExtraHours(List<Workday> workdays) {
-        Row hoursRow = sheet.createRow(EXTRA_HOURS_ROW);
-        Cell emptyCell = hoursRow.createCell(DAYS_START_COLUMN);
+        Row extraHoursRow = sheet.createRow(EXTRA_HOURS_ROW);
+        Cell emptyCell = extraHoursRow.createCell(DAYS_START_COLUMN);
         emptyCell.setCellStyle(getHourLabelStyle(true));
-        hoursRow.setHeight((short) 500);
+        extraHoursRow.setHeight((short) 500);
 
-        Cell nightHourLabelCell = hoursRow.createCell(HOUR_LABEL);
-        nightHourLabelCell.setCellStyle(getHourLabelStyle(false));
-        nightHourLabelCell.setCellValue("Straordinario");
+        Cell extraHourLabelCell = extraHoursRow.createCell(HOUR_LABEL);
+        extraHourLabelCell.setCellStyle(getHourLabelStyle(false));
+        extraHourLabelCell.setCellValue("Straordinario");
 
-        //TODO write extra hours
+        int daysInMonth = getDaysInMonth();
 
+        int notEntirePermitDays = 0;
+
+        for (int i = 1; i <= daysInMonth; i++) {
+            Cell cell = extraHoursRow.createCell(HOUR_LABEL + i + notEntirePermitDays);
+            CellStyle extraHoursStyle = createMiddleCellStyle();
+            setRedFontStyle(extraHoursStyle);
+
+            Workday selectedDay = getSelectedDay(workdays, i);
+
+            notEntirePermitDays = handleMergedCells(extraHoursRow, notEntirePermitDays, i, extraHoursStyle, selectedDay, EXTRA_HOURS_ROW, DAYS_HEADER_FIRST_EMPTY_CELL);
+
+            cell.setCellStyle(extraHoursStyle);
+            if (selectedDay.getExtraHours() > 0) {
+                cell.setCellValue(selectedDay.getExtraHours());
+            }
+
+        }
+
+        int totalExtraHours = workdays.stream()
+                .map(Workday::getExtraHours)
+                .mapToInt(w -> w).sum();
+
+        int daysHeaderLastEmptyCell = writeSeparatorCell(extraHoursRow, daysInMonth + notEntirePermitDays);
+        Cell extraHoursTotalCell = createTotalCell(extraHoursRow, daysHeaderLastEmptyCell, totalExtraHours);
+        XSSFFont font = setRedFontForTotals(extraHoursTotalCell);
+
+        Cell nonWorkingHoursTotalCell = createTotalCell(extraHoursRow, extraHoursTotalCell.getColumnIndex(), "", IndexedColors.LIGHT_YELLOW.getIndex());
+
+        Cell extraHoursTotalCellCopy = createTotalCell(extraHoursRow, nonWorkingHoursTotalCell.getColumnIndex() + 2, totalExtraHours);
+        extraHoursTotalCellCopy.getCellStyle().setFont(font);
+
+    }
+
+    private CellStyle createMiddleCellStyle() {
+        CellStyle extraHoursStyle = workbook.createCellStyle();
+        setStandardTextAlignment(extraHoursStyle);
+        extraHoursStyle.setBorderTop(BorderStyle.THIN);
+        extraHoursStyle.setBorderLeft(BorderStyle.THIN);
+        extraHoursStyle.setBorderRight(BorderStyle.THIN);
+        return extraHoursStyle;
     }
 
     private void writeNotes(List<Workday> workdays) {
@@ -300,39 +400,120 @@ public class ExportService {
 
         for (int i = 1; i <= daysInMonth; i++) {
             Cell cell = notesRow.createCell(HOUR_LABEL + i + notEntirePermitDays);
-            CellStyle notesCellStyle = workbook.createCellStyle();
-            notesCellStyle.setAlignment(HorizontalAlignment.CENTER);
-            notesCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-            notesCellStyle.setBorderTop(BorderStyle.THIN);
-            notesCellStyle.setBorderLeft(BorderStyle.THIN);
-            notesCellStyle.setBorderRight(BorderStyle.THIN);
-            notesCellStyle.setBorderBottom(BorderStyle.MEDIUM);
-
-            int currentIterationDay = i;
-            Workday selectedDay = workdays.stream()
-                    .filter(day -> day.getDate().equals(LocalDate.of(exportYear, exportMonth, currentIterationDay)))
-                    .findAny().orElse(new Workday());
-
-            if (selectedDay.getWorkPermitHours() > 0 && selectedDay.getWorkPermitHours() < 8) {
-                sheet.addMergedRegion(new CellRangeAddress(NOTES_ROW, NOTES_ROW, DAYS_HEADER_FIRST_EMPTY_CELL + notEntirePermitDays + i, DAYS_HEADER_FIRST_EMPTY_CELL + notEntirePermitDays + i + 1));
-                Cell nextCell = notesRow.createCell(HOUR_LABEL + i + 1 + notEntirePermitDays);
-
-                nextCell.setCellValue(selectedDay.getWorkPermitHours());
-                nextCell.setCellStyle(notesCellStyle);
-                notEntirePermitDays++;
+            CellStyle notesCellStyle = createMiddleCellStyle();
+            if (i == daysInMonth) {
+                notesCellStyle.setBorderRight(BorderStyle.MEDIUM);
             }
+            notesCellStyle.setBorderBottom(BorderStyle.MEDIUM);
+            notesCellStyle.setWrapText(true);
+            setRedFontStyle(notesCellStyle);
+
+            Workday selectedDay = getSelectedDay(workdays, i);
+
+            notEntirePermitDays = handleMergedCells(notesRow, notEntirePermitDays, i, notesCellStyle, selectedDay, NOTES_ROW, DAYS_HEADER_FIRST_EMPTY_CELL);
 
             if (selectedDay.getDate() != null) {
                 //TODO resize cell to make notes text fit into
             }
+
             cell.setCellStyle(notesCellStyle);
             cell.setCellValue(selectedDay.getNotes());
 
         }
+
+        int daysHeaderLastEmptyCell = writeSeparatorCell(notesRow, daysInMonth + notEntirePermitDays);
+        Cell workingHoursTotalCell = createTotalCell(notesRow, daysHeaderLastEmptyCell, "");
+        Cell nonWorkingHoursTotalCell = createTotalCell(notesRow, workingHoursTotalCell.getColumnIndex(), "", IndexedColors.LIGHT_YELLOW.getIndex());
+        Cell holidaysHoursTotalCell = createTotalCell(notesRow, nonWorkingHoursTotalCell.getColumnIndex(), "", IndexedColors.LIGHT_GREEN.getIndex());
+        Cell sicknessHoursTotalCell = createTotalCell(notesRow, holidaysHoursTotalCell.getColumnIndex(), "", IndexedColors.ROSE.getIndex());
+        Cell totalHoursTotalCell = createTotalCell(notesRow, sicknessHoursTotalCell.getColumnIndex(), "");
+        Cell aTotalCell = createTotalCell(notesRow, totalHoursTotalCell.getColumnIndex(), "");
+        createTotalCell(notesRow, aTotalCell.getColumnIndex(), "");
+
     }
 
-    private void writeLegend(List<Workday> workdays) {
-        //TODO structure legend
+    private void writeLegend() {
+        Row legendRow = sheet.createRow(LEGEND_FIRST_ROW);
+        writeLegendValue(legendRow, LEGEND_FIRST_COLUMN, "8", IndexedColors.ROSE.getIndex());
+        writeEqualsSign(legendRow, LEGEND_FIRST_COLUMN);
+        writeLegendDescription(legendRow, LEGEND_FIRST_COLUMN, "Malattia");
+
+        writeLegendValue(legendRow, LEGEND_MIDDLE_COLUMN, "8", IndexedColors.SEA_GREEN.getIndex());
+        writeEqualsSign(legendRow, LEGEND_MIDDLE_COLUMN);
+        writeLegendDescription(legendRow, LEGEND_MIDDLE_COLUMN, "Permesso Retribuito");
+
+        writeLegendValue(legendRow, LEGEND_LAST_COLUMN, "8", IndexedColors.LIGHT_GREEN.getIndex());
+        writeEqualsSign(legendRow, LEGEND_LAST_COLUMN);
+        writeLegendDescription(legendRow, LEGEND_LAST_COLUMN, "Ferie");
+
+        legendRow = sheet.createRow(LEGEND_SECOND_ROW);
+        writeLegendValue(legendRow, LEGEND_FIRST_COLUMN, "PL", IndexedColors.WHITE.getIndex());
+        writeEqualsSign(legendRow, LEGEND_FIRST_COLUMN);
+        writeLegendDescription(legendRow, LEGEND_FIRST_COLUMN, "Permesso per lutto");
+
+        writeLegendValue(legendRow, LEGEND_MIDDLE_COLUMN, "PS", IndexedColors.RED.getIndex());
+        writeEqualsSign(legendRow, LEGEND_MIDDLE_COLUMN);
+        writeLegendDescription(legendRow, LEGEND_MIDDLE_COLUMN, "Permesso sindacale");
+
+        writeLegendValue(legendRow, LEGEND_LAST_COLUMN, "I", IndexedColors.WHITE.getIndex());
+        writeEqualsSign(legendRow, LEGEND_LAST_COLUMN);
+        writeLegendDescription(legendRow, LEGEND_LAST_COLUMN, "Infortunio");
+    }
+
+    private CellStyle writeLegendValue(Row legendRow, int column, String legendContent, short backgroundColorIndex) {
+        Cell legendCell = legendRow.createCell(column);
+        CellStyle legendStyle = workbook.createCellStyle();
+        setThinSquareStyle(legendStyle);
+        XSSFFont font = workbook.createFont();
+        font.setFontHeightInPoints((short) 10);
+        legendStyle.setFillForegroundColor(backgroundColorIndex);
+        legendStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        setStandardTextAlignment(legendStyle);
+        legendCell.setCellValue(legendContent);
+        legendCell.setCellStyle(legendStyle);
+        return legendStyle;
+    }
+
+    private void writeLegendDescription(Row legendRow, int column, String legendDescription) {
+        int columnOffset = column + 2;
+        Cell legendCell = legendRow.createCell(columnOffset);
+        CellStyle legendStyle = workbook.createCellStyle();
+        XSSFFont font = workbook.createFont();
+        font.setFontHeightInPoints((short) 12);
+        setStandardTextAlignment(legendStyle);
+        legendCell.setCellValue(legendDescription);
+        legendCell.setCellStyle(legendStyle);
+        int rowNum = legendRow.getRowNum();
+        sheet.addMergedRegion(new CellRangeAddress(rowNum, rowNum, columnOffset, columnOffset + 2));
+
+    }
+
+    private void writeEqualsSign(Row headerRow, int legendEarlierColumn) {
+        Cell equalSign = headerRow.createCell(legendEarlierColumn + 1);
+        CellStyle signStyle = workbook.createCellStyle();
+        setStandardTextAlignment(signStyle);
+        XSSFFont font = workbook.createFont();
+        font.setFontHeightInPoints((short) 12);
+        equalSign.setCellStyle(signStyle);
+        signStyle.setFont(font);
+        equalSign.setCellValue("=");
+    }
+
+    private static void setStandardTextAlignment(CellStyle legendStyle) {
+        legendStyle.setAlignment(HorizontalAlignment.CENTER);
+        legendStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+    }
+
+    private int handleMergedCells(Row notesRow, int notEntirePermitDays, int i, CellStyle notesCellStyle, Workday selectedDay, int rowIndex, int daysFirstEmptyCellIndex) {
+        if (selectedDay.getWorkPermitHours() > 0 && selectedDay.getWorkPermitHours() < 8) {
+            sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex, daysFirstEmptyCellIndex + notEntirePermitDays + i, daysFirstEmptyCellIndex + notEntirePermitDays + i + 1));
+            Cell nextCell = notesRow.createCell(HOUR_LABEL + i + 1 + notEntirePermitDays);
+
+            nextCell.setCellValue(selectedDay.getWorkPermitHours());
+            nextCell.setCellStyle(notesCellStyle);
+            notEntirePermitDays++;
+        }
+        return notEntirePermitDays;
     }
 
     private int writeSeparatorCell(Row headerRow, int daysInMonth) {
@@ -350,6 +531,13 @@ public class ExportService {
             cell.setCellValue(selectedDay.getWorkingHours());
         }
     }
+
+    private void addNightWorkingHours(Cell cell, Workday selectedDay) {
+        if (selectedDay.getNightWorkingHours() > 0) {
+            cell.setCellValue(selectedDay.getNightWorkingHours());
+        }
+    }
+
 
     private void addFuneralLeave(Cell cell, Workday selectedDay) {
         if (selectedDay.getFuneralLeaveHours() > 0) {
@@ -414,8 +602,7 @@ public class ExportService {
     private CellStyle getInfoPanelStyle() {
         CellStyle infoPanelStyle = workbook.createCellStyle();
         infoPanelStyle.setWrapText(true);
-        infoPanelStyle.setAlignment(HorizontalAlignment.CENTER);
-        infoPanelStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        setStandardTextAlignment(infoPanelStyle);
         infoPanelStyle.setBorderTop(BorderStyle.THIN);
         infoPanelStyle.setBorderBottom(BorderStyle.THIN);
         infoPanelStyle.setBorderLeft(BorderStyle.THIN);
@@ -437,8 +624,7 @@ public class ExportService {
         font.setBold(true);
         font.setColor(IndexedColors.RED.getIndex());
         nameCellStyle.setFont(font);
-        nameCellStyle.setAlignment(HorizontalAlignment.CENTER);
-        nameCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        setStandardTextAlignment(nameCellStyle);
         nameCellStyle.setBorderTop(BorderStyle.MEDIUM);
         nameCellStyle.setBorderBottom(BorderStyle.MEDIUM);
         nameCellStyle.setBorderLeft(BorderStyle.MEDIUM);
@@ -477,8 +663,7 @@ public class ExportService {
 
     private CellStyle getHourLabelStyle(boolean bold) {
         CellStyle dateHeaderStyle = workbook.createCellStyle();
-        dateHeaderStyle.setAlignment(HorizontalAlignment.CENTER);
-        dateHeaderStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        setStandardTextAlignment(dateHeaderStyle);
         dateHeaderStyle.setBorderTop(BorderStyle.MEDIUM);
         dateHeaderStyle.setBorderLeft(BorderStyle.MEDIUM);
         dateHeaderStyle.setBorderRight(BorderStyle.MEDIUM);
@@ -505,15 +690,22 @@ public class ExportService {
     }
 
     private void setHardSquareStyle(CellStyle notesHeaderStyle) {
-        notesHeaderStyle.setAlignment(HorizontalAlignment.CENTER);
-        notesHeaderStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        setStandardTextAlignment(notesHeaderStyle);
         notesHeaderStyle.setBorderTop(BorderStyle.MEDIUM);
         notesHeaderStyle.setBorderBottom(BorderStyle.MEDIUM);
         notesHeaderStyle.setBorderLeft(BorderStyle.MEDIUM);
         notesHeaderStyle.setBorderRight(BorderStyle.MEDIUM);
     }
 
-    private int handlePermitDayHours(Row hoursRow, int notEntirePermitDays, int i, CellStyle hoursCellStyle, Workday selectedDay) {
+    private void setThinSquareStyle(CellStyle notesHeaderStyle) {
+        setStandardTextAlignment(notesHeaderStyle);
+        notesHeaderStyle.setBorderTop(BorderStyle.THIN);
+        notesHeaderStyle.setBorderBottom(BorderStyle.THIN);
+        notesHeaderStyle.setBorderLeft(BorderStyle.THIN);
+        notesHeaderStyle.setBorderRight(BorderStyle.THIN);
+    }
+
+    private int handlePermitDayHoursOnMorningRow(Row hoursRow, int notEntirePermitDays, int i, CellStyle hoursCellStyle, Workday selectedDay) {
         if (selectedDay.getWorkPermitHours() > 0) {
             Cell nextCell;
             if (selectedDay.getWorkPermitHours() < 8) {
