@@ -51,8 +51,6 @@ public class ExportService {
     }
 
     public void export(Integer year, Integer month, Long userId) throws IOException {
-        //TODO fix color for entire workpermit days
-
         workbook = new XSSFWorkbook();
 
         this.exportYear = year;
@@ -714,6 +712,8 @@ public class ExportService {
                 notEntirePermitDays++;
             } else {
                 nextCell = hoursRow.createCell(HOUR_LABEL + i + notEntirePermitDays);
+                hoursCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+                hoursCellStyle.setFillForegroundColor(IndexedColors.SEA_GREEN.getIndex());
             }
             nextCell.setCellValue(selectedDay.getWorkPermitHours());
             CellStyle nextCellStyle = workbook.createCellStyle();
