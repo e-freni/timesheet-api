@@ -14,6 +14,7 @@ class ExportServiceTest {
 
     @Test
     void export() throws IOException {
-        exportService.export(2022, 9, 2L);
+        //TODO write real test
+        exportService.export(2022, 10, 1L);
     }
 }

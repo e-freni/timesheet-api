@@ -8,8 +8,7 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -50,7 +49,7 @@ public class ExportService {
         this.applicationUserService = applicationUserService;
     }
 
-    public void export(Integer year, Integer month, Long userId) throws IOException {
+    public byte[] export(Integer year, Integer month, Long userId) throws IOException {
         workbook = new XSSFWorkbook();
 
         this.exportYear = year;
@@ -74,13 +73,10 @@ public class ExportService {
         writeNotes(workdays);
         writeLegend();
 
-        File currDir = new File(".");
-        String path = currDir.getAbsolutePath();
-        String fileLocation = path.substring(0, path.length() - 1) + "temp.xlsx";
-
-        FileOutputStream outputStream = new FileOutputStream(fileLocation);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         workbook.write(outputStream);
         workbook.close();
+        return outputStream.toByteArray();
     }
 
     private void writeInfoPanel(Row infoPanelRow) {
@@ -483,7 +479,7 @@ public class ExportService {
         legendCell.setCellValue(legendDescription);
         legendCell.setCellStyle(legendStyle);
         int rowNum = legendRow.getRowNum();
-        sheet.addMergedRegion(new CellRangeAddress(rowNum, rowNum, columnOffset, columnOffset + 2));
+        sheet.addMergedRegion(new CellRangeAddress(rowNum, rowNum, columnOffset, columnOffset + 3));
 
     }
 

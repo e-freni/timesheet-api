@@ -40,7 +40,7 @@ public class WorkdayController {
     @GetMapping("/workday")
     public ResponseEntity<List<WorkdayDto>> getUserWorkDays(
             @RequestParam(value = "username") String username,
-            @RequestParam(value = "fromDate") String fromDate ,
+            @RequestParam(value = "fromDate") String fromDate,
             @RequestParam(value = "toDate") String toDate
     ) throws UnauthorizedException {
 
@@ -95,12 +95,11 @@ public class WorkdayController {
     }
 
     @GetMapping("/workday/{userId}/export")
-    public ResponseEntity<String> exportMonthWorkdays(
+    public ResponseEntity<byte[]> exportMonthWorkdays(
             @PathVariable(value = "userId") Long userId,
             @PathParam(value = "year") Integer year,
-            @PathParam(value = "month") Integer month) throws UnauthorizedException, IOException { //FIXME
+            @PathParam(value = "month") Integer month) throws UnauthorizedException, IOException { //FIXME handle exceptions
         AuthorizationService.checkUserIsAuthorized(userId);
-        exportService.export(year, month, userId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(exportService.export(year, month, userId));
     }
 }

@@ -42,7 +42,7 @@
 							}
 						],
 						"url": {
-							"raw": "localhost:8080/api/workday?username=efreni",
+							"raw": "localhost:8080/api/workday?username=efreni&fromDate=01/8/2022&toDate=30/8/2022",
 							"host": [
 								"localhost"
 							],
@@ -55,6 +55,14 @@
 								{
 									"key": "username",
 									"value": "efreni"
+								},
+								{
+									"key": "fromDate",
+									"value": "01/8/2022"
+								},
+								{
+									"key": "toDate",
+									"value": "30/8/2022"
 								}
 							]
 						}
@@ -144,7 +152,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "    {\n        \"date\": \"2022-08-13\",\n        \"userId\": 4,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": false,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
+							"raw": "    {\n        \"date\": \"2022-08-13\",\n        \"usernameId\": 4,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": false,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -194,7 +202,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "    {\n        \"id\": \"1\",\n        \"date\": \"2022-08-06\",\n        \"userId\": 1,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": false,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
+							"raw": "    {\n        \"id\": \"1\",\n        \"date\": \"2022-08-06\",\n        \"usernameId\": 1,\n        \"workingHours\": 8,\n        \"extraHours\": 0,\n        \"workPermitHours\": 0,\n        \"funeralLeaveHours\": 0,\n        \"holiday\": false,\n        \"sick\": false,\n        \"accidentAtWork\": false,\n        \"notes\": \"una nota\"\n    }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -244,7 +252,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "    {\r\n        \"id\": \"2\",\r\n        \"date\": \"2022-08-06\",\r\n        \"userId\": 1,\r\n        \"workingHours\": 8,\r\n        \"extraHours\": 0,\r\n        \"workPermitHours\": 0,\r\n        \"funeralLeaveHours\": 0,\r\n        \"holiday\": false,\r\n        \"sick\": false,\r\n        \"accidentAtWork\": false,\r\n        \"notes\": \"una nota\"\r\n    }",
+							"raw": "    {\r\n        \"id\": \"2\",\r\n        \"date\": \"2022-08-06\",\r\n        \"usernameId\": 1,\r\n        \"workingHours\": 8,\r\n        \"extraHours\": 0,\r\n        \"workPermitHours\": 0,\r\n        \"funeralLeaveHours\": 0,\r\n        \"holiday\": false,\r\n        \"sick\": false,\r\n        \"accidentAtWork\": false,\r\n        \"notes\": \"una nota\"\r\n    }",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -451,6 +459,51 @@
 			]
 		},
 		{
+			"name": "Export",
+			"item": [
+				{
+					"name": "pdfExport",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/api/workday/1?year=2022&month=10",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"workday",
+								"1"
+							],
+							"query": [
+								{
+									"key": "year",
+									"value": "2022"
+								},
+								{
+									"key": "month",
+									"value": "10"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "login",
 			"event": [
 				{
@@ -458,7 +511,7 @@
 					"script": {
 						"exec": [
 							"let responseData=pm.response.json();",
-							"pm.environment.set(\"jwtToken\", responseData.jwt);",
+							"pm.environment.set(\"jwtToken\", responseData.token);",
 							""
 						],
 						"type": "text/javascript"
@@ -481,7 +534,8 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:8080/api/account/login",
+					"raw": "http://localhost:8080/api/account/login",
+					"protocol": "http",
 					"host": [
 						"localhost"
 					],
@@ -535,6 +589,32 @@
 						"api",
 						"account",
 						"resetPassword"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "loginInfo",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{jwtToken}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost:8080/api/account/info",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"account",
+						"info"
 					]
 				}
 			},
