@@ -87,7 +87,7 @@ public class ExportService {
 
         Cell infoPanelCell = infoPanelRow.createCell(INFO_PANEL_START_COLUMN); //skip prima linea
         infoPanelRow.createCell(LAST_CELL_INDEX); //creo l'ultima cella per non avere tagli
-        infoPanelCell.setCellValue("A= ore complessive B= ore lavorare senza ferie e straordinari");
+        infoPanelCell.setCellValue("A= ore complessive B= ore lavorate senza ferie e straordinari");
         sheet.addMergedRegion(new CellRangeAddress(1, 1, INFO_PANEL_START_COLUMN, INFO_PANEL_END_COLUMN));
 
         infoPanelCell.setCellStyle(getInfoPanelStyle());
@@ -301,6 +301,11 @@ public class ExportService {
 
         Cell nightHoursTotalCellCopy = createTotalCell(nightHoursRow, secondMergeColumn, totalNightWorkingHours);
         nightHoursTotalCellCopy.getCellStyle().setFont(font);
+
+        int totalACell = nightHoursTotalCellCopy.getColumnIndex() + 1;
+        sheet.getRow(NIGHT_HOURS_ROW).createCell(totalACell).setCellStyle(getDayNumberHeaderCellStyle());
+        int totalBCell = nightHoursTotalCellCopy.getColumnIndex() + 2;
+        sheet.getRow(NIGHT_HOURS_ROW).createCell(totalBCell).setCellStyle(getDayNumberHeaderCellStyle());
     }
 
     private void setRedFontStyle(CellStyle notesCellStyle) {
@@ -368,6 +373,10 @@ public class ExportService {
         Cell extraHoursTotalCellCopy = createTotalCell(extraHoursRow, nonWorkingHoursTotalCell.getColumnIndex() + 2, totalExtraHours);
         extraHoursTotalCellCopy.getCellStyle().setFont(font);
 
+        int totalACell = extraHoursTotalCellCopy.getColumnIndex() + 1;
+        sheet.getRow(EXTRA_HOURS_ROW).createCell(totalACell).setCellStyle(getDayNumberHeaderCellStyle());
+        int totalBCell = extraHoursTotalCellCopy.getColumnIndex() + 2;
+        sheet.getRow(EXTRA_HOURS_ROW).createCell(totalBCell).setCellStyle(getDayNumberHeaderCellStyle());
     }
 
     private CellStyle createMiddleCellStyle() {

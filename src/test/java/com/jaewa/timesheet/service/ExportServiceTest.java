@@ -6,10 +6,7 @@ import com.jaewa.timesheet.model.repository.ApplicationUserRepository;
 import com.jaewa.timesheet.model.repository.WorkdayRepository;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,7 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @Testcontainers
 class ExportServiceTest {
 
-    public static final int MONDAY = 3;
+    //TODO create tests for non working days, funeral leave and totals, as soon as all doubts on registration logic are cleared
+
+    public static final int MONDAY = 3; // 3 is monday on January
     public static final int TUESDAY = 4;
     public static final int WEDNESDAY = 5;
     public static final int FIRST_SHEET = 0;
@@ -54,7 +53,7 @@ class ExportServiceTest {
     ApplicationUser u1;
 
     @Container
-    public static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:14")
+    public static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer<>("postgres:14")
             .withDatabaseName("timesheet")
             .withUsername("sa")
             .withPassword("sa");
@@ -198,7 +197,7 @@ class ExportServiceTest {
                 .workPermitHours(2)
                 .nightWorkingHours(0)
                 .funeralLeaveHours(0)
-                .date(LocalDate.of(2022, 1, MONDAY)) // 3 is monday
+                .date(LocalDate.of(2022, 1, MONDAY))
                 .build();
         this.workdayRepository.save(fractionalPermitWorkday);
 
@@ -262,9 +261,118 @@ class ExportServiceTest {
         assertEquals(fractionalWorkPermitHourStyle, workbook.getSheetAt(FIRST_SHEET).getRow(MORNING_HOURS_ROW).getCell(TUESDAY + 3 + 1).getCellStyle());
 
         assertEquals("5.0", workbook.getSheetAt(FIRST_SHEET).getRow(HEADER_ROW).getCell(WEDNESDAY + 2 + 2).getRawValue());
-        assertEquals("6.0",workbook.getSheetAt(FIRST_SHEET).getRow(HEADER_ROW).getCell(WEDNESDAY + 3 + 2).getRawValue());
+        assertEquals("6.0", workbook.getSheetAt(FIRST_SHEET).getRow(HEADER_ROW).getCell(WEDNESDAY + 3 + 2).getRawValue());
         assertEquals(String.valueOf(Double.valueOf(entirePermitWorkday.getWorkPermitHours())), workbook.getSheetAt(FIRST_SHEET).getRow(MORNING_HOURS_ROW).getCell(WEDNESDAY + 2 + 2).getRawValue());
         assertEquals(fractionalWorkPermitHourStyle, workbook.getSheetAt(FIRST_SHEET).getRow(MORNING_HOURS_ROW).getCell(WEDNESDAY + 2 + 2).getCellStyle());
 
+    }
+
+    @Test
+    @Transactional
+    void testSickHoursStructure() throws IOException {
+        setup();
+
+        Workday sickDay = Workday.builder()
+                .applicationUser(u1)
+                .accidentAtWork(false)
+                .sick(true)
+                .holiday(false)
+                .workingHours(0)
+                .extraHours(0)
+                .workPermitHours(0)
+                .nightWorkingHours(0)
+                .funeralLeaveHours(0)
+                .date(LocalDate.of(2022, 1, MONDAY))
+                .build();
+        this.workdayRepository.save(sickDay);
+
+        byte[] export = exportService.export(2022, 1, u1.getId());
+        XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(export));
+        assertEquals("3.0", workbook.getSheetAt(FIRST_SHEET).getRow(HEADER_ROW).getCell(MONDAY + 2).getRawValue());
+        assertEquals("8.0", workbook.getSheetAt(FIRST_SHEET).getRow(MORNING_HOURS_ROW).getCell(MONDAY + 2).getRawValue());
+
+        CellStyle sickHourStyle = workbook.createCellStyle();
+        sickHourStyle.setAlignment(HorizontalAlignment.CENTER);
+        sickHourStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        sickHourStyle.setBorderTop(BorderStyle.THIN);
+        sickHourStyle.setBorderBottom(BorderStyle.THIN);
+        sickHourStyle.setBorderLeft(BorderStyle.THIN);
+        sickHourStyle.setBorderRight(BorderStyle.THIN);
+        sickHourStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        sickHourStyle.setFillForegroundColor(IndexedColors.ROSE.getIndex());
+
+        assertEquals(sickHourStyle, workbook.getSheetAt(FIRST_SHEET).getRow(MORNING_HOURS_ROW).getCell(MONDAY + 2).getCellStyle());
+    }
+
+    @Test
+    @Transactional
+    void testHolidayHoursStructure() throws IOException {
+        setup();
+
+        Workday holiday = Workday.builder()
+                .applicationUser(u1)
+                .accidentAtWork(false)
+                .sick(false)
+                .holiday(true)
+                .workingHours(0)
+                .extraHours(0)
+                .workPermitHours(0)
+                .nightWorkingHours(0)
+                .funeralLeaveHours(0)
+                .date(LocalDate.of(2022, 1, MONDAY))
+                .build();
+        this.workdayRepository.save(holiday);
+
+        byte[] export = exportService.export(2022, 1, u1.getId());
+        XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(export));
+        assertEquals("3.0", workbook.getSheetAt(FIRST_SHEET).getRow(HEADER_ROW).getCell(MONDAY + 2).getRawValue());
+        assertEquals("8.0", workbook.getSheetAt(FIRST_SHEET).getRow(MORNING_HOURS_ROW).getCell(MONDAY + 2).getRawValue());
+
+        CellStyle sickHourStyle = workbook.createCellStyle();
+        sickHourStyle.setAlignment(HorizontalAlignment.CENTER);
+        sickHourStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        sickHourStyle.setBorderTop(BorderStyle.THIN);
+        sickHourStyle.setBorderBottom(BorderStyle.THIN);
+        sickHourStyle.setBorderLeft(BorderStyle.THIN);
+        sickHourStyle.setBorderRight(BorderStyle.THIN);
+        sickHourStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        sickHourStyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+
+        assertEquals(sickHourStyle, workbook.getSheetAt(FIRST_SHEET).getRow(MORNING_HOURS_ROW).getCell(MONDAY + 2).getCellStyle());
+    }
+
+    @Test
+    @Transactional
+    void testAccidentAtWorkHoursStructure() throws IOException {
+        setup();
+
+        Workday accidentAtWorkday = Workday.builder()
+                .applicationUser(u1)
+                .accidentAtWork(true)
+                .sick(false)
+                .holiday(false)
+                .workingHours(0)
+                .extraHours(0)
+                .workPermitHours(0)
+                .nightWorkingHours(0)
+                .funeralLeaveHours(0)
+                .date(LocalDate.of(2022, 1, MONDAY))
+                .build();
+        this.workdayRepository.save(accidentAtWorkday);
+
+        byte[] export = exportService.export(2022, 1, u1.getId());
+        XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(export));
+        assertEquals("3.0", workbook.getSheetAt(FIRST_SHEET).getRow(HEADER_ROW).getCell(MONDAY + 2).getRawValue());
+        assertEquals("I", workbook.getSheetAt(FIRST_SHEET).getRow(MORNING_HOURS_ROW).getCell(MONDAY + 2).getStringCellValue());
+
+        CellStyle sickHourStyle = workbook.createCellStyle();
+        sickHourStyle.setAlignment(HorizontalAlignment.CENTER);
+        sickHourStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        sickHourStyle.setBorderTop(BorderStyle.THIN);
+        sickHourStyle.setBorderBottom(BorderStyle.THIN);
+        sickHourStyle.setBorderLeft(BorderStyle.THIN);
+        sickHourStyle.setBorderRight(BorderStyle.THIN);
+
+        assertEquals(sickHourStyle, workbook.getSheetAt(FIRST_SHEET).getRow(MORNING_HOURS_ROW).getCell(MONDAY + 2).getCellStyle());
     }
 }
