@@ -1,7 +1,6 @@
 package com.jaewa.timesheet.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDate;
@@ -9,6 +8,9 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "workday")
 public class Workday {
 
@@ -51,3 +53,6 @@ public class Workday {
     private String notes;
 
 }
+
+
+

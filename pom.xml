@@ -16,12 +16,13 @@
     <description>Time sheet scheduler</description>
     <properties>
         <java.version>11</java.version>
-        <testcontainers.version>1.17.2</testcontainers.version>
-        <org.mapstruct.version>1.5.2.Final</org.mapstruct.version>
+        <testcontainers.version>1.17.5</testcontainers.version>
+        <org.mapstruct.version>1.5.3.Final</org.mapstruct.version>
         <org.projectlombok.version>1.18.24</org.projectlombok.version>
         <org.postgresql.version>42.5.0</org.postgresql.version>
         <org.apache.poi.version>5.2.2</org.apache.poi.version>
         <org.springframework.version>5.7.3</org.springframework.version>
+        <org.springframework.modules.version>2.7.5</org.springframework.modules.version>
     </properties>
     <dependencies>
         <dependency>
@@ -31,10 +32,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-rest</artifactId>
+            <version>${org.springframework.modules.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <version>${org.springframework.modules.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -135,11 +138,6 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>${org.apache.poi.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.0</version>
         </dependency>
     </dependencies>
     <dependencyManagement>

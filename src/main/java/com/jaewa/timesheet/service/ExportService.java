@@ -125,9 +125,9 @@ public class ExportService {
             if (selectedDay.getWorkPermitHours() > 0) {
                 if (selectedDay.getWorkPermitHours() < 8) {
                     sheet.addMergedRegion(new CellRangeAddress(DAYS_HEADER_ROW, DAYS_HEADER_ROW, DAYS_HEADER_FIRST_EMPTY_CELL + notEntirePermitDays + calendarDay, DAYS_HEADER_FIRST_EMPTY_CELL + notEntirePermitDays + calendarDay + 1));
+                    headerCell = headerRow.createCell(DAYS_HEADER_FIRST_EMPTY_CELL + calendarDay + notEntirePermitDays + 1);
                     notEntirePermitDays++;
                 }
-                headerCell = headerRow.createCell(DAYS_HEADER_FIRST_EMPTY_CELL + calendarDay + 1);
                 headerCell.setCellValue(calendarDay);
                 headerCell.setCellStyle(getDayNumberHeaderCellStyle());
             }
