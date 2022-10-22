@@ -52,6 +52,7 @@ public class WorkdayService {
         checkUserAccidentAtWork(workday);
         checkUserHoliday(workday);
         checkUserExtraHours(workday);
+        checkUserNightHours(workday);
         checkUserWorkPermitHours(workday);
         checkUserNormalDayWork(workday);
     }
@@ -93,7 +94,13 @@ public class WorkdayService {
     }
 
     private void checkUserExtraHours(Workday workday) throws IncoherentDataException {
-        if (workday.getExtraHours() > 0 && workday.getWorkingHours() + workday.getWorkPermitHours() + workday.getFuneralLeaveHours() != 8) {
+        if (workday.getExtraHours() > 0 && workday.getExtraHours() <= 10 && workday.getWorkingHours() + workday.getWorkPermitHours() + workday.getFuneralLeaveHours() != 8) {
+            throw new IncoherentDataException("Extra hours are not coherent with others hours");
+        }
+    }
+
+    private void checkUserNightHours(Workday workday) throws IncoherentDataException {
+        if (workday.getNightWorkingHours() > 0 && workday.getNightWorkingHours() <= 5 && workday.getWorkingHours() + workday.getWorkPermitHours() + workday.getFuneralLeaveHours() != 8) {
             throw new IncoherentDataException("Extra hours are not coherent with others hours");
         }
     }
