@@ -1,15 +1,14 @@
 package com.jaewa.timesheet.controller;
 
+import com.jaewa.timesheet.controller.dto.SummaryDto;
 import com.jaewa.timesheet.controller.dto.WorkdayDto;
+import com.jaewa.timesheet.controller.mapper.SummaryMapper;
 import com.jaewa.timesheet.controller.mapper.WorkdayMapper;
 import com.jaewa.timesheet.exception.IncoherentDataException;
 import com.jaewa.timesheet.exception.UnauthorizedException;
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.Workday;
-import com.jaewa.timesheet.service.ApplicationUserService;
-import com.jaewa.timesheet.service.AuthorizationService;
-import com.jaewa.timesheet.service.ExportService;
-import com.jaewa.timesheet.service.WorkdayService;
+import com.jaewa.timesheet.service.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,18 +22,19 @@ import java.util.stream.Collectors;
 public class WorkdayController {
 
     private final WorkdayService workdayService;
-
     private final ApplicationUserService applicationUserService;
-
     private final ExportService exportService;
-
+    private final SummaryService summaryService;
     private final WorkdayMapper workdayMapper;
+    private final SummaryMapper summaryMapper;
 
-    public WorkdayController(WorkdayService workdayService, ApplicationUserService applicationUserService, WorkdayMapper workdayMapper, ExportService exportService) {
+    public WorkdayController(WorkdayService workdayService, ApplicationUserService applicationUserService, WorkdayMapper workdayMapper, ExportService exportService, SummaryService summaryService, SummaryMapper summaryMapper) {
         this.workdayService = workdayService;
         this.applicationUserService = applicationUserService;
         this.exportService = exportService;
         this.workdayMapper = workdayMapper;
+        this.summaryService = summaryService;
+        this.summaryMapper = summaryMapper;
     }
 
     @GetMapping("/workday")
@@ -101,5 +101,14 @@ public class WorkdayController {
             @PathParam(value = "month") Integer month) throws UnauthorizedException, IOException { //FIXME handle exceptions
         AuthorizationService.checkUserIsAuthorized(userId);
         return ResponseEntity.ok(exportService.export(year, month, userId));
+    }
+
+    @GetMapping("/workday/{userId}/summary")
+    public ResponseEntity<SummaryDto> workdaysSummary(
+            @PathVariable(value = "userId") Long userId,
+            @PathParam(value = "year") Integer year,
+            @PathParam(value = "month") Integer month) throws UnauthorizedException {
+        AuthorizationService.checkUserIsAuthorized(userId);
+        return ResponseEntity.ok(summaryMapper.toDto(summaryService.getSummaryData(year, month, userId)));
     }
 }
