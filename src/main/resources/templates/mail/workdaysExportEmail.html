@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title th:text="${'Jaewa Timesheet - Foglio ore ' + senderName + ' ' + senderSurname + ' - ' + month + '/' + year}"></title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<p th:text="${'Ciao!'}"></p>
+<p th:text="${senderName + ' ti ha inviato il foglio delle ore per il ' + month + '/' + year}"></p>
+<p>In caso di anomalie ti prego di segnalarle a: <a
+        href="mailto:enrico.freni@jaewa.com?subject=Timesheet - Anomalia export">enrico.freni@jaewa.com</a></p>
+<p>
+  <span>Saluti,</span>
+  <br/>
+  <em>Il tuo simpatico Jaewa-bot!</em>
+</p>
+</body>
+</html>
+

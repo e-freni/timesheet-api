@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.websocket.server.PathParam;
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,15 +22,13 @@ public class WorkdayController {
 
     private final WorkdayService workdayService;
     private final ApplicationUserService applicationUserService;
-    private final ExportService exportService;
     private final SummaryService summaryService;
     private final WorkdayMapper workdayMapper;
     private final SummaryMapper summaryMapper;
 
-    public WorkdayController(WorkdayService workdayService, ApplicationUserService applicationUserService, WorkdayMapper workdayMapper, ExportService exportService, SummaryService summaryService, SummaryMapper summaryMapper) {
+    public WorkdayController(WorkdayService workdayService, ApplicationUserService applicationUserService, WorkdayMapper workdayMapper, SummaryService summaryService, SummaryMapper summaryMapper) {
         this.workdayService = workdayService;
         this.applicationUserService = applicationUserService;
-        this.exportService = exportService;
         this.workdayMapper = workdayMapper;
         this.summaryService = summaryService;
         this.summaryMapper = summaryMapper;
@@ -92,15 +89,6 @@ public class WorkdayController {
         AuthorizationService.checkUserIsAuthorized(userId);
         workdayService.deleteWorkday(workdayId);
         return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/workday/{userId}/export")
-    public ResponseEntity<byte[]> exportMonthWorkdays(
-            @PathVariable(value = "userId") Long userId,
-            @PathParam(value = "year") Integer year,
-            @PathParam(value = "month") Integer month) throws UnauthorizedException, IOException { //FIXME handle exceptions
-        AuthorizationService.checkUserIsAuthorized(userId);
-        return ResponseEntity.ok(exportService.export(year, month, userId));
     }
 
     @GetMapping("/workday/{userId}/summary")

@@ -2,6 +2,7 @@ package com.jaewa.timesheet.service;
 
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.Workday;
+import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFFont;
@@ -9,6 +10,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -47,6 +49,12 @@ public class ExportService {
     public ExportService(WorkdayService workdayService, ApplicationUserService applicationUserService) {
         this.workdayService = workdayService;
         this.applicationUserService = applicationUserService;
+    }
+
+    public File exportToFile(Integer year, Integer month, Long userId) throws IOException {
+        File outputFile = new File("temp.xlsx");
+        FileUtils.writeByteArrayToFile(outputFile, export(year, month, userId));
+        return outputFile;
     }
 
     public byte[] export(Integer year, Integer month, Long userId) throws IOException {
