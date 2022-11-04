@@ -16,7 +16,7 @@ import javax.transaction.Transactional;
 import java.time.LocalDate;
 
 import static com.jaewa.timesheet.model.UserRole.USER;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Testcontainers
 class SummaryServiceTest extends BaseDataTest {
 
-    public static final int JANUARY_WITHOUT_SATURNDAYS_AND_SUNDAYS = 21;
+    public static final int JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS = 21;
     @Autowired
     SummaryService summaryService;
 
@@ -54,7 +54,7 @@ class SummaryServiceTest extends BaseDataTest {
     void getSummaryDataOnFullWorkingMonth() {
         setup();
 
-        for (int i = 1; i <= JANUARY_WITHOUT_SATURNDAYS_AND_SUNDAYS; i++) {
+        for (int i = 1; i <= JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS; i++) {
             Workday workday = Workday.builder()
                     .applicationUser(u1)
                     .accidentAtWork(false)
@@ -64,7 +64,7 @@ class SummaryServiceTest extends BaseDataTest {
                     .extraHours(0)
                     .workPermitHours(0)
                     .nightWorkingHours(0)
-                    .funeralLeaveHours(0)
+                    .funeralLeave(false)
                     .date(LocalDate.of(2022, 1, i))
                     .build();
             this.workdayRepository.save(workday);
@@ -88,7 +88,7 @@ class SummaryServiceTest extends BaseDataTest {
     void getSummaryDataOnNotFullWorkingMonth() {
         setup();
 
-        for (int i = 1; i <= JANUARY_WITHOUT_SATURNDAYS_AND_SUNDAYS - 10; i++) {
+        for (int i = 1; i <= JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS - 10; i++) {
             Workday workday = Workday.builder()
                     .applicationUser(u1)
                     .accidentAtWork(false)
@@ -98,7 +98,7 @@ class SummaryServiceTest extends BaseDataTest {
                     .extraHours(0)
                     .workPermitHours(0)
                     .nightWorkingHours(0)
-                    .funeralLeaveHours(0)
+                    .funeralLeave(false)
                     .date(LocalDate.of(2022, 1, i))
                     .build();
             this.workdayRepository.save(workday);
@@ -124,7 +124,7 @@ class SummaryServiceTest extends BaseDataTest {
 
         //TODO check calculation
 
-        for (int i = 1; i <= JANUARY_WITHOUT_SATURNDAYS_AND_SUNDAYS - 10; i++) {
+        for (int i = 1; i <= JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS - 10; i++) {
             Workday workday = Workday.builder()
                     .applicationUser(u1)
                     .accidentAtWork(false)
@@ -134,7 +134,7 @@ class SummaryServiceTest extends BaseDataTest {
                     .extraHours(0)
                     .workPermitHours(0)
                     .nightWorkingHours(0)
-                    .funeralLeaveHours(0)
+                    .funeralLeave(false)
                     .date(LocalDate.of(2022, 1, i))
                     .build();
             this.workdayRepository.save(workday);
@@ -150,8 +150,8 @@ class SummaryServiceTest extends BaseDataTest {
                 .extraHours(0)
                 .workPermitHours(4)
                 .nightWorkingHours(0)
-                .funeralLeaveHours(0)
-                .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURNDAYS_AND_SUNDAYS - 9))
+                .funeralLeave(false)
+                .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS - 9))
                 .build();
         this.workdayRepository.save(workday);
         //92 working hours - 4 permit
@@ -166,8 +166,8 @@ class SummaryServiceTest extends BaseDataTest {
                 .extraHours(0)
                 .workPermitHours(0)
                 .nightWorkingHours(0)
-                .funeralLeaveHours(0)
-                .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURNDAYS_AND_SUNDAYS - 8))
+                .funeralLeave(false)
+                .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS - 8))
                 .build();
         this.workdayRepository.save(workday);
         //92 working hours - 4 permit - 8 holiday
@@ -181,8 +181,8 @@ class SummaryServiceTest extends BaseDataTest {
                 .extraHours(0)
                 .workPermitHours(0)
                 .nightWorkingHours(0)
-                .funeralLeaveHours(0)
-                .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURNDAYS_AND_SUNDAYS - 7))
+                .funeralLeave(false)
+                .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS - 7))
                 .build();
         this.workdayRepository.save(workday);
         //92 working hours - 4 permit - 8 holiday - 8 sickness
@@ -196,8 +196,8 @@ class SummaryServiceTest extends BaseDataTest {
                 .extraHours(0)
                 .workPermitHours(0)
                 .nightWorkingHours(0)
-                .funeralLeaveHours(0)
-                .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURNDAYS_AND_SUNDAYS - 6))
+                .funeralLeave(false)
+                .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS - 6))
                 .build();
         this.workdayRepository.save(workday);
         //92 working hours - 4 permit - 8 holiday - 8 sickness - 8 accident at work
@@ -212,8 +212,8 @@ class SummaryServiceTest extends BaseDataTest {
                 .extraHours(extrahours)
                 .workPermitHours(0)
                 .nightWorkingHours(0)
-                .funeralLeaveHours(0)
-                .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURNDAYS_AND_SUNDAYS - 5))
+                .funeralLeave(false)
+                .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS - 5))
                 .build();
         this.workdayRepository.save(workday);
         //100 working hours - 4 permit - 8 holiday - 8 sickness - 8 accident at work - 4 extra hours
@@ -227,8 +227,8 @@ class SummaryServiceTest extends BaseDataTest {
                 .extraHours(0)
                 .workPermitHours(0)
                 .nightWorkingHours(4)
-                .funeralLeaveHours(0)
-                .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURNDAYS_AND_SUNDAYS - 4))
+                .funeralLeave(false)
+                .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS - 4))
                 .build();
         this.workdayRepository.save(workday);
         //104 working hours - 4 permit - 8 holiday - 8 sickness - 8 accident at work - 4 extra hours - 4 night hours
@@ -242,8 +242,8 @@ class SummaryServiceTest extends BaseDataTest {
                 .extraHours(0)
                 .workPermitHours(0)
                 .nightWorkingHours(0)
-                .funeralLeaveHours(4)
-                .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURNDAYS_AND_SUNDAYS - 3))
+                .funeralLeave(true)
+                .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS - 3))
                 .build();
         this.workdayRepository.save(workday);
 

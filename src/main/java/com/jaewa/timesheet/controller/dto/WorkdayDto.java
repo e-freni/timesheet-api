@@ -25,7 +25,7 @@ public class WorkdayDto {
 
     private int nightWorkingHours;
 
-    private int funeralLeaveHours;
+    private boolean funeralLeave;
 
     private boolean holiday;
 

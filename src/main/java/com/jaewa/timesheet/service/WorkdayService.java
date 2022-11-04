@@ -81,27 +81,28 @@ public class WorkdayService {
                 throw new IncoherentDataException("8 working hours are not coherent with any work permit hours");
             }
         }
-        if (workday.getWorkingHours() != 8 && !workday.isSick() && !workday.isHoliday() && !workday.isAccidentAtWork()
-                && workday.getWorkPermitHours() == 0 && workday.getFuneralLeaveHours() == 0) {
-            throw new IncoherentDataException("There are no conditions to log less than 8 working hours");
+        if (!workday.isSick() && !workday.isHoliday() && !workday.isAccidentAtWork() && !workday.isFuneralLeave()
+                && workday.getWorkingHours() != 8
+                && workday.getWorkPermitHours() == 0) {
+            throw new IncoherentDataException("There are no conditions to log less/more than 8 working hours");
         }
     }
 
     private void checkUserWorkPermitHours(Workday workday) throws IncoherentDataException {
-        if (workday.getWorkPermitHours() > 0 && workday.getWorkingHours() + workday.getWorkPermitHours() + workday.getFuneralLeaveHours() != 8) {
+        if (workday.getWorkPermitHours() > 0 && workday.getWorkingHours() + workday.getWorkPermitHours() != 8) {
             throw new IncoherentDataException("Permit hours are not coherent with others hours");
         }
     }
 
     private void checkUserExtraHours(Workday workday) throws IncoherentDataException {
-        if (workday.getExtraHours() > 0 && workday.getExtraHours() <= 10 && workday.getWorkingHours() + workday.getWorkPermitHours() + workday.getFuneralLeaveHours() != 8) {
-            throw new IncoherentDataException("Extra hours are not coherent with others hours");
+        if (workday.getExtraHours() > 0 && workday.getExtraHours() <= 10 && workday.getWorkingHours() + workday.getWorkPermitHours() != 8) {
+            throw new IncoherentDataException("Extra hours are not coherent");
         }
     }
 
     private void checkUserNightHours(Workday workday) throws IncoherentDataException {
-        if (workday.getNightWorkingHours() > 0 && workday.getNightWorkingHours() <= 5 && workday.getWorkingHours() + workday.getWorkPermitHours() + workday.getFuneralLeaveHours() != 8) {
-            throw new IncoherentDataException("Extra hours are not coherent with others hours");
+        if (workday.getNightWorkingHours() > 0 && workday.getNightWorkingHours() <= 5 && workday.getWorkingHours() + workday.getWorkPermitHours() != 8) {
+            throw new IncoherentDataException("Night hours are not coherent");
         }
     }
 
@@ -113,6 +114,9 @@ public class WorkdayService {
             }
             if (workday.isSick()) {
                 throw new IncoherentDataException("Holiday is not coherent with sickness");
+            }
+            if (workday.isFuneralLeave()) {
+                throw new IncoherentDataException("Funeral leave is not coherent with sickness");
             }
             if (workday.getWorkingHours() > 0) {
                 throw new IncoherentDataException("Holiday is not coherent with any working hours");

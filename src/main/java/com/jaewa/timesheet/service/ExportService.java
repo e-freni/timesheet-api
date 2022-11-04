@@ -203,7 +203,7 @@ public class ExportService {
         int daysHeaderLastEmptyCell = writeSeparatorCell(hoursRow, daysInMonth + notEntirePermitDays);
 
         int totalWorkingHours = workdays.stream()
-                .map(w -> w.getWorkingHours() + w.getWorkPermitHours())
+                .map(w -> w.getWorkingHours() + w.getWorkPermitHours() + (w.isFuneralLeave() ? 8 : 0))
                 .mapToInt(w -> w).sum();
 
         Cell workingHoursTotalCell = createTotalCell(hoursRow, daysHeaderLastEmptyCell, totalWorkingHours);
@@ -284,7 +284,7 @@ public class ExportService {
 
             Workday selectedDay = getSelectedDay(workdays, i);
 
-            notEntirePermitDays = handleMergedCells(nightHoursRow, notEntirePermitDays, i, nightHoursCellStyle, selectedDay, NIGHT_HOURS_ROW, DAYS_HEADER_FIRST_EMPTY_CELL);
+            notEntirePermitDays = handleMergedCells(nightHoursRow, notEntirePermitDays, i, nightHoursCellStyle, selectedDay, NIGHT_HOURS_ROW);
 
             cell.setCellStyle(nightHoursCellStyle);
 
@@ -359,7 +359,7 @@ public class ExportService {
 
             Workday selectedDay = getSelectedDay(workdays, i);
 
-            notEntirePermitDays = handleMergedCells(extraHoursRow, notEntirePermitDays, i, extraHoursStyle, selectedDay, EXTRA_HOURS_ROW, DAYS_HEADER_FIRST_EMPTY_CELL);
+            notEntirePermitDays = handleMergedCells(extraHoursRow, notEntirePermitDays, i, extraHoursStyle, selectedDay, EXTRA_HOURS_ROW);
 
             cell.setCellStyle(extraHoursStyle);
             if (selectedDay.getExtraHours() > 0) {
@@ -422,7 +422,7 @@ public class ExportService {
 
             Workday selectedDay = getSelectedDay(workdays, i);
 
-            notEntirePermitDays = handleMergedCells(notesRow, notEntirePermitDays, i, notesCellStyle, selectedDay, NOTES_ROW, DAYS_HEADER_FIRST_EMPTY_CELL);
+            notEntirePermitDays = handleMergedCells(notesRow, notEntirePermitDays, i, notesCellStyle, selectedDay, NOTES_ROW);
 
             if (selectedDay.getDate() != null) {
                 //TODO resize cell to make notes text fit into
@@ -472,7 +472,7 @@ public class ExportService {
         writeLegendDescription(legendRow, LEGEND_LAST_COLUMN, "Infortunio");
     }
 
-    private CellStyle writeLegendValue(Row legendRow, int column, String legendContent, short backgroundColorIndex) {
+    private void writeLegendValue(Row legendRow, int column, String legendContent, short backgroundColorIndex) {
         Cell legendCell = legendRow.createCell(column);
         CellStyle legendStyle = workbook.createCellStyle();
         setThinSquareStyle(legendStyle);
@@ -483,7 +483,6 @@ public class ExportService {
         setStandardTextAlignment(legendStyle);
         legendCell.setCellValue(legendContent);
         legendCell.setCellStyle(legendStyle);
-        return legendStyle;
     }
 
     private void writeLegendDescription(Row legendRow, int column, String legendDescription) {
@@ -516,13 +515,15 @@ public class ExportService {
         legendStyle.setVerticalAlignment(VerticalAlignment.CENTER);
     }
 
-    private int handleMergedCells(Row notesRow, int notEntirePermitDays, int i, CellStyle notesCellStyle, Workday selectedDay, int rowIndex, int daysFirstEmptyCellIndex) {
+    private int handleMergedCells(Row currentRow, int notEntirePermitDays, int i, CellStyle cellStyle, Workday selectedDay, int rowIndex) {
         if (selectedDay.getWorkPermitHours() > 0 && selectedDay.getWorkPermitHours() < 8) {
-            sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex, daysFirstEmptyCellIndex + notEntirePermitDays + i, daysFirstEmptyCellIndex + notEntirePermitDays + i + 1));
-            Cell nextCell = notesRow.createCell(HOUR_LABEL + i + 1 + notEntirePermitDays);
+            sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex, DAYS_HEADER_FIRST_EMPTY_CELL + notEntirePermitDays + i, DAYS_HEADER_FIRST_EMPTY_CELL + notEntirePermitDays + i + 1));
+            Cell nextCell = currentRow.createCell(HOUR_LABEL + i + 1 + notEntirePermitDays);
 
-            nextCell.setCellValue(selectedDay.getWorkPermitHours());
-            nextCell.setCellStyle(notesCellStyle);
+            if (currentRow.getRowNum() == MORNING_HOURS_ROW) {
+                nextCell.setCellValue(selectedDay.getWorkPermitHours());
+            }
+            nextCell.setCellStyle(cellStyle);
             notEntirePermitDays++;
         }
         return notEntirePermitDays;
@@ -552,9 +553,8 @@ public class ExportService {
 
 
     private void addFuneralLeave(Cell cell, Workday selectedDay) {
-        if (selectedDay.getFuneralLeaveHours() > 0) {
+        if (selectedDay.isFuneralLeave()) {
             cell.setCellValue("PL");
-            //FIXME funeral leave is treated as a boolean in the real model, but funeral leaves are fractional, so?
         }
     }
 

@@ -37,8 +37,8 @@ public class Workday {
     @Column(name = "night_working_hours", nullable = false)
     private int nightWorkingHours;
 
-    @Column(name = "funeral_leave_hours", nullable = false)
-    private int funeralLeaveHours;
+    @Column(name = "funeral_leave", nullable = false)
+    private boolean funeralLeave;
 
     @Column(name = "holiday", nullable = false)
     private boolean holiday;

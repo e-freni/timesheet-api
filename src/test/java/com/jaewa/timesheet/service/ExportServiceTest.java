@@ -10,12 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.transaction.Transactional;
@@ -147,7 +142,7 @@ class ExportServiceTest extends BaseDataTest {
                     .extraHours(0)
                     .workPermitHours(0)
                     .nightWorkingHours(0)
-                    .funeralLeaveHours(0)
+                    .funeralLeave(false)
                     .date(LocalDate.of(2022, 1, i))
                     .build();
             this.workdayRepository.save(workday);
@@ -178,7 +173,7 @@ class ExportServiceTest extends BaseDataTest {
                 .extraHours(0)
                 .workPermitHours(2)
                 .nightWorkingHours(0)
-                .funeralLeaveHours(0)
+                .funeralLeave(false)
                 .date(LocalDate.of(2022, 1, MONDAY))
                 .build();
         this.workdayRepository.save(fractionalPermitWorkday);
@@ -192,7 +187,7 @@ class ExportServiceTest extends BaseDataTest {
                 .extraHours(0)
                 .workPermitHours(3)
                 .nightWorkingHours(0)
-                .funeralLeaveHours(0)
+                .funeralLeave(false)
                 .date(LocalDate.of(2022, 1, TUESDAY))
                 .build();
         this.workdayRepository.save(anotherFractionalPermitWorkday);
@@ -206,7 +201,7 @@ class ExportServiceTest extends BaseDataTest {
                 .extraHours(0)
                 .workPermitHours(8)
                 .nightWorkingHours(0)
-                .funeralLeaveHours(0)
+                .funeralLeave(false)
                 .date(LocalDate.of(2022, 1, WEDNESDAY))
                 .build();
         this.workdayRepository.save(entirePermitWorkday);
@@ -263,7 +258,7 @@ class ExportServiceTest extends BaseDataTest {
                 .extraHours(0)
                 .workPermitHours(0)
                 .nightWorkingHours(0)
-                .funeralLeaveHours(0)
+                .funeralLeave(false)
                 .date(LocalDate.of(2022, 1, MONDAY))
                 .build();
         this.workdayRepository.save(sickDay);
@@ -300,7 +295,7 @@ class ExportServiceTest extends BaseDataTest {
                 .extraHours(0)
                 .workPermitHours(0)
                 .nightWorkingHours(0)
-                .funeralLeaveHours(0)
+                .funeralLeave(false)
                 .date(LocalDate.of(2022, 1, MONDAY))
                 .build();
         this.workdayRepository.save(holiday);
@@ -337,7 +332,7 @@ class ExportServiceTest extends BaseDataTest {
                 .extraHours(0)
                 .workPermitHours(0)
                 .nightWorkingHours(0)
-                .funeralLeaveHours(0)
+                .funeralLeave(false)
                 .date(LocalDate.of(2022, 1, MONDAY))
                 .build();
         this.workdayRepository.save(accidentAtWorkday);

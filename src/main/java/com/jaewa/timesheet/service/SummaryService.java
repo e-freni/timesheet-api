@@ -41,7 +41,7 @@ public class SummaryService {
         int permitHours = summaryWorkdays.stream().mapToInt(Workday::getWorkPermitHours).sum();
         int extraHours = summaryWorkdays.stream().mapToInt(Workday::getExtraHours).sum();
         int nightHours = summaryWorkdays.stream().mapToInt(Workday::getNightWorkingHours).sum();
-        int funeralLeaveHours = summaryWorkdays.stream().mapToInt(Workday::getFuneralLeaveHours).sum();
+        int funeralLeaveHours = summaryWorkdays.stream().mapToInt(w -> w.isFuneralLeave() ? 8 : 0).sum();
         int loggedHours = workHours + holidaysHours + sicknessHours + permitHours + nightHours + funeralLeaveHours + extraHours;
 
         Calendar calendar = Calendar.getInstance();
