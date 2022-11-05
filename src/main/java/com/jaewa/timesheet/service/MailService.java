@@ -1,16 +1,16 @@
 package com.jaewa.timesheet.service;
 
+import com.jaewa.timesheet.exception.MailSendingException;
 import com.jaewa.timesheet.model.ApplicationUser;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
+import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -40,7 +40,7 @@ public class MailService {
         this.mailFrom = mailFrom;
     }
 
-    public void sendActivationEmail(ApplicationUser user, String randomPassword) {
+    public void sendActivationEmail(ApplicationUser user, String randomPassword) throws MailSendingException {
         Locale locale = Locale.getDefault();
         Context context = new Context(locale);
         context.setVariable(USER, user.getFirstName());
@@ -48,7 +48,7 @@ public class MailService {
         sendEmail(user.getEmail(), "mail/activationEmail", context, "Jaewa Timesheet - Attivazione Account");
     }
 
-    public void sendWorkdaysExportByEmail(String[] array, Long userId, Integer month, Integer year, File file) {
+    public void sendWorkdaysExportByEmail(String[] array, Long userId, Integer month, Integer year, File file) throws MailSendingException {
         Locale locale = Locale.getDefault();
         Context context = new Context(locale);
         ApplicationUser user = applicationUserService.findById(userId);
@@ -60,7 +60,7 @@ public class MailService {
         sendEmailToGroup(array, "mail/workdaysExportEmail", context, subject, file);
     }
 
-    public void sendEmail(String sendTo, String templateName, Context context, String subject) {
+    public void sendEmail(String sendTo, String templateName, Context context, String subject) throws MailSendingException {
         MimeMessage mimeMessage = emailSender.createMimeMessage();
         try {
             String content = templateEngine.process(templateName, context);
@@ -70,14 +70,15 @@ public class MailService {
             message.setSubject(subject);
             message.setText(content, true);
             emailSender.send(mimeMessage);
-            log.debug("Email inviata a '{}'", sendTo);
-        } catch (MailException | MessagingException e) {
-            log.warn("Non è stato possibile inviare l'email a '{}'", sendTo, e);
+            log.debug("Email has been sent to '{}'", sendTo);
+        } catch (Exception e) {
+            log.warn("It was impossible to send email to'{}'", sendTo, e);
+            throw new MailSendException("It was impossible to send email");
         }
     }
 
 
-    public void sendResetPasswordEmail(ApplicationUser user, String randomPassword) {
+    public void sendResetPasswordEmail(ApplicationUser user, String randomPassword) throws MailSendingException {
         Locale locale = Locale.getDefault();
         Context context = new Context(locale);
         context.setVariable(USER, user.getFirstName());
@@ -85,7 +86,7 @@ public class MailService {
         sendEmail(user.getEmail(), "mail/passwordResetEmail", context, "Jaewa Timesheet - Password Reset");
     }
 
-    public void sendEmailToGroup(String[] sendTo, String templateName, Context context, String subject, File file) {
+    public void sendEmailToGroup(String[] sendTo, String templateName, Context context, String subject, File file) throws MailSendingException {
         MimeMessage mimeMessage = emailSender.createMimeMessage();
         String attachmentFileName = subject.replace("Jaewa - ", "").replace(" ", "_") + ".xlsx";
         try {
@@ -98,8 +99,9 @@ public class MailService {
             message.addAttachment(attachmentFileName, file);
             emailSender.send(mimeMessage);
             log.debug("Email inviate a '{}'", Arrays.toString(sendTo));
-        } catch (MailException | MessagingException e) {
-            log.warn("Non è stato possibile inviare l'email a '{}'", sendTo, e);
+        } catch (Exception e) {
+            log.warn("It was impossible to send email to'{}'", sendTo, e);
+            throw new MailSendException("It was impossible to send email");
         }
     }
 

@@ -54,15 +54,18 @@ public class ApplicationUserController {
 
     @PostMapping("/users/new")
     @RolesAllowed("ADMIN")
-    public ResponseEntity<ApplicationUserDto> addUser(@RequestBody ApplicationUserDto applicationUserDto) {
+    public ResponseEntity<?> addUser(@RequestBody ApplicationUserDto applicationUserDto) {
         ApplicationUser user = new ApplicationUser();
         applicationUserMapper.toModel(applicationUserDto, user);
 
         String randomPassword = UUID.randomUUID().toString();
         ApplicationUser newUser = applicationUserService.addUser(user, randomPassword);
 
-        mailService.sendActivationEmail(newUser, randomPassword);
-
+        try {
+            mailService.sendActivationEmail(newUser, randomPassword);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("There has been an error during sending. Contact the administrator.");
+        }
         return ResponseEntity.ok(applicationUserMapper.toDTO(newUser));
     }
 

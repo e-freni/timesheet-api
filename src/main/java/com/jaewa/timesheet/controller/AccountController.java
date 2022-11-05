@@ -4,6 +4,7 @@ import com.jaewa.timesheet.controller.dto.ApplicationUserDto;
 import com.jaewa.timesheet.controller.dto.LoginDto;
 import com.jaewa.timesheet.controller.dto.TokenDto;
 import com.jaewa.timesheet.controller.mapper.ApplicationUserMapper;
+import com.jaewa.timesheet.exception.MailSendingException;
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.service.ApplicationUserService;
 import com.jaewa.timesheet.service.AuthorizationService;
@@ -65,7 +66,7 @@ public class AccountController {
     }
 
     @PostMapping("/account/resetPassword")
-    public ResponseEntity<String> resetPassword(@RequestBody String username) {
+    public ResponseEntity<String> resetPassword(@RequestBody String username) throws MailSendingException {
         Optional<ApplicationUser> user = applicationUserService.getByUsername(username);
 
         if (user.isEmpty()) {

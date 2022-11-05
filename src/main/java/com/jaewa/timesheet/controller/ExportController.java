@@ -1,14 +1,16 @@
 package com.jaewa.timesheet.controller;
 
+import com.jaewa.timesheet.exception.MailSendingException;
 import com.jaewa.timesheet.exception.UnauthorizedException;
-import com.jaewa.timesheet.service.*;
+import com.jaewa.timesheet.service.AuthorizationService;
+import com.jaewa.timesheet.service.ExportService;
+import com.jaewa.timesheet.service.MailService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.websocket.server.PathParam;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -36,7 +38,7 @@ public class ExportController {
             @PathParam(value = "year") Integer year,
             @PathParam(value = "month") Integer month,
             @RequestBody List<String> recipients //TODO write a proper DTO this is a mess!!! and delete temp file
-    ) throws UnauthorizedException, IOException { //FIXME handle exceptions
+    ) throws UnauthorizedException, IOException, MailSendingException { //FIXME handle exceptions
         AuthorizationService.checkUserIsAuthorized(userId);
         File file = this.exportService.exportToFile(year, month, userId);
         String[] recipientsArray = new String[recipients.size()];
