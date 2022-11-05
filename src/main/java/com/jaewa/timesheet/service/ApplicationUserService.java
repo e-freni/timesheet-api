@@ -1,5 +1,6 @@
 package com.jaewa.timesheet.service;
 
+import com.jaewa.timesheet.exception.UserRegistrationException;
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.UserRole;
 import com.jaewa.timesheet.model.repository.ApplicationUserRepository;
@@ -39,10 +40,11 @@ public class ApplicationUserService {
     public Optional<ApplicationUser> getById(Long id) {
         return applicationUserRepository.findById(id);
     }
+
     public ApplicationUser findById(Long id) {
         Optional<ApplicationUser> optionalApplicationUser = applicationUserRepository.findById(id);
 
-        if(optionalApplicationUser.isEmpty()){
+        if (optionalApplicationUser.isEmpty()) {
             throw new EntityNotFoundException("User doesn't exists");
         }
 
@@ -65,7 +67,8 @@ public class ApplicationUserService {
         return applicationUserRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail);
     }
 
-    public ApplicationUser addUser(ApplicationUser user, String password) {
+    public ApplicationUser addUser(ApplicationUser user, String password) throws UserRegistrationException {
+        checkUserDoesntExist(user);
         user.setPassword(passwordEncoder.encode(password));
         return saveUser(user);
     }
@@ -77,6 +80,17 @@ public class ApplicationUserService {
 
     public ApplicationUser saveUser(ApplicationUser user) {
         return applicationUserRepository.save(user);
+    }
+
+    private void checkUserDoesntExist(ApplicationUser user) throws UserRegistrationException {
+        Optional<ApplicationUser> userByUserName = getByUsername(user.getUsername());
+        if (userByUserName.isPresent()) {
+            throw new UserRegistrationException(String.format("Username %s has already been taken", user.getUsername()));
+        }
+        Optional<ApplicationUser> userByEmail = getByLoginInfo(user.getEmail());
+        if (userByEmail.isPresent()) {
+            throw new UserRegistrationException(String.format("Email %s has already been taken", user.getEmail()));
+        }
     }
 
     public void deleteUser(Long id) {

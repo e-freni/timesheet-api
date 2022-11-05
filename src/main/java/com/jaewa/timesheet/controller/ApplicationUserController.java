@@ -2,7 +2,9 @@ package com.jaewa.timesheet.controller;
 
 import com.jaewa.timesheet.controller.dto.ApplicationUserDto;
 import com.jaewa.timesheet.controller.mapper.ApplicationUserMapper;
+import com.jaewa.timesheet.exception.MailSendingException;
 import com.jaewa.timesheet.exception.UnauthorizedException;
+import com.jaewa.timesheet.exception.UserRegistrationException;
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.UserRole;
 import com.jaewa.timesheet.service.ApplicationUserService;
@@ -29,7 +31,7 @@ public class ApplicationUserController {
         this.mailService = mailService;
     }
 
-    @GetMapping("/users")
+    @GetMapping("/user")
     @RolesAllowed({"ADMIN"})
     public ResponseEntity<List<ApplicationUserDto>> findUsers(
             @RequestParam(required = false) UserRole role,
@@ -43,7 +45,7 @@ public class ApplicationUserController {
                         .collect(Collectors.toList()));
     }
 
-    @GetMapping("/users/{id}")
+    @GetMapping("/user/{id}")
     @RolesAllowed({"ADMIN", "USER"})
     public ResponseEntity<ApplicationUserDto> getUser(@PathVariable Long id) throws UnauthorizedException {
         AuthorizationService.checkUserIsAuthorized(id);
@@ -52,24 +54,20 @@ public class ApplicationUserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/users/new")
+    @PostMapping("/user/new")
     @RolesAllowed("ADMIN")
-    public ResponseEntity<?> addUser(@RequestBody ApplicationUserDto applicationUserDto) {
+    public ResponseEntity<ApplicationUserDto> addUser(@RequestBody ApplicationUserDto applicationUserDto) throws MailSendingException, UserRegistrationException {
         ApplicationUser user = new ApplicationUser();
         applicationUserMapper.toModel(applicationUserDto, user);
 
         String randomPassword = UUID.randomUUID().toString();
         ApplicationUser newUser = applicationUserService.addUser(user, randomPassword);
+        mailService.sendActivationEmail(newUser, randomPassword);
 
-        try {
-            mailService.sendActivationEmail(newUser, randomPassword);
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("There has been an error during sending. Contact the administrator.");
-        }
         return ResponseEntity.ok(applicationUserMapper.toDTO(newUser));
     }
 
-    @PutMapping("/users/edit")
+    @PutMapping("/user/edit")
     @RolesAllowed({"ADMIN", "USER"})
     public ResponseEntity<ApplicationUserDto> editUser(@RequestBody ApplicationUserDto applicationUserDto) throws UnauthorizedException {
         AuthorizationService.checkUserIsAuthorized(applicationUserDto.getId());
@@ -81,7 +79,7 @@ public class ApplicationUserController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/users/delete/{id}")
+    @DeleteMapping("/user/delete/{id}")
     @RolesAllowed("ADMIN")
     //TODO handle wildcard
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
