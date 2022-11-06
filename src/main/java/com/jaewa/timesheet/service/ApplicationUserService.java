@@ -108,4 +108,13 @@ public class ApplicationUserService {
         return passwordEncoder.matches(password, user.getPassword());
     }
 
+    public void checkPasswordMatch(String username, String oldPassword) throws UserRegistrationException {
+        Optional<ApplicationUser> user = getByUsername(username);
+        if (user.isEmpty()) {
+            throw new UserRegistrationException(String.format("Username %s doesn't exists", username));
+        }
+        if (!passwordEncoder.matches(oldPassword, user.get().getPassword())) {
+            throw new UserRegistrationException(String.format("Sent current password doesn't match to the one already saved for user %s", username));
+        }
+    }
 }

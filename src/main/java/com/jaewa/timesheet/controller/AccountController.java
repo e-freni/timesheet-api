@@ -1,10 +1,13 @@
 package com.jaewa.timesheet.controller;
 
 import com.jaewa.timesheet.controller.dto.ApplicationUserDto;
+import com.jaewa.timesheet.controller.dto.ChangePasswordDto;
 import com.jaewa.timesheet.controller.dto.LoginDto;
 import com.jaewa.timesheet.controller.dto.TokenDto;
 import com.jaewa.timesheet.controller.mapper.ApplicationUserMapper;
 import com.jaewa.timesheet.exception.MailSendingException;
+import com.jaewa.timesheet.exception.UnauthorizedException;
+import com.jaewa.timesheet.exception.UserRegistrationException;
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.service.ApplicationUserService;
 import com.jaewa.timesheet.service.AuthorizationService;
@@ -65,7 +68,7 @@ public class AccountController {
 
     }
 
-    @PostMapping("/account/resetPassword")
+    @PostMapping("/account/reset-password")
     public ResponseEntity<String> resetPassword(@RequestBody String username) throws MailSendingException {
         Optional<ApplicationUser> user = applicationUserService.getByUsername(username);
 
@@ -77,6 +80,21 @@ public class AccountController {
         String randomPassword = UUID.randomUUID().toString();
         applicationUserService.changePassword(username, randomPassword);
         mailService.sendResetPasswordEmail(user.get(), randomPassword);
+        return ResponseEntity.ok().build();
+
+    }
+
+    @PostMapping("/account/change-password")
+    public ResponseEntity<String> changePassword(@RequestBody ChangePasswordDto dto) throws UnauthorizedException, UserRegistrationException {
+        Optional<ApplicationUser> user = applicationUserService.getByUsername(dto.getUsername());
+
+        if (user.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        AuthorizationService.checkUserIsAuthorized(user.get().getId());
+        applicationUserService.checkPasswordMatch(dto.getUsername(), dto.getOldPassword());
+        applicationUserService.changePassword(dto.getUsername(), dto.getNewPassword());
         return ResponseEntity.ok().build();
 
     }
