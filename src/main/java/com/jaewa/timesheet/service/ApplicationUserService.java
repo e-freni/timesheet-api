@@ -1,6 +1,7 @@
 package com.jaewa.timesheet.service;
 
-import com.jaewa.timesheet.exception.UserRegistrationException;
+import com.jaewa.timesheet.exception.IncoherentDataException;
+import com.jaewa.timesheet.exception.UnauthorizedException;
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.UserRole;
 import com.jaewa.timesheet.model.repository.ApplicationUserRepository;
@@ -67,7 +68,7 @@ public class ApplicationUserService {
         return applicationUserRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail);
     }
 
-    public ApplicationUser addUser(ApplicationUser user, String password) throws UserRegistrationException {
+    public ApplicationUser addUser(ApplicationUser user, String password) throws UnauthorizedException {
         checkUserDoesntExist(user);
         user.setPassword(passwordEncoder.encode(password));
         return saveUser(user);
@@ -82,14 +83,14 @@ public class ApplicationUserService {
         return applicationUserRepository.save(user);
     }
 
-    private void checkUserDoesntExist(ApplicationUser user) throws UserRegistrationException {
+    private void checkUserDoesntExist(ApplicationUser user) throws UnauthorizedException {
         Optional<ApplicationUser> userByUserName = getByUsername(user.getUsername());
         if (userByUserName.isPresent()) {
-            throw new UserRegistrationException(String.format("Username %s has already been taken", user.getUsername()));
+            throw new UnauthorizedException(String.format("Username %s has already been taken", user.getUsername()));
         }
         Optional<ApplicationUser> userByEmail = getByLoginInfo(user.getEmail());
         if (userByEmail.isPresent()) {
-            throw new UserRegistrationException(String.format("Email %s has already been taken", user.getEmail()));
+            throw new UnauthorizedException(String.format("Email %s has already been taken", user.getEmail()));
         }
     }
 
@@ -108,13 +109,13 @@ public class ApplicationUserService {
         return passwordEncoder.matches(password, user.getPassword());
     }
 
-    public void checkPasswordMatch(String username, String oldPassword) throws UserRegistrationException {
+    public void checkPasswordMatch(String username, String oldPassword) throws IncoherentDataException {
         Optional<ApplicationUser> user = getByUsername(username);
         if (user.isEmpty()) {
-            throw new UserRegistrationException(String.format("Username %s doesn't exists", username));
+            throw new IncoherentDataException(String.format("Username %s doesn't exists", username));
         }
         if (!passwordEncoder.matches(oldPassword, user.get().getPassword())) {
-            throw new UserRegistrationException(String.format("Sent current password doesn't match to the one already saved for user %s", username));
+            throw new IncoherentDataException(String.format("Sent current password doesn't match to the one already saved for user %s", username));
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.jaewa.timesheet.service;
 
-import com.jaewa.timesheet.exception.MailSendingException;
 import com.jaewa.timesheet.model.ApplicationUser;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +22,7 @@ import java.util.Locale;
 public class MailService {
 
     private static final String USER = "user";
+    private static final String CONFIRMATION_TOKEN = "confirmationToken";
     private static final String RANDOM_PASSWORD = "randomPassword";
     private final JavaMailSender emailSender;
     private final TemplateEngine templateEngine;
@@ -40,7 +40,7 @@ public class MailService {
         this.mailFrom = mailFrom;
     }
 
-    public void sendActivationEmail(ApplicationUser user, String randomPassword) throws MailSendingException {
+    public void sendActivationEmail(ApplicationUser user, String randomPassword) throws MailSendException {
         Locale locale = Locale.getDefault();
         Context context = new Context(locale);
         context.setVariable(USER, user.getFirstName());
@@ -48,7 +48,7 @@ public class MailService {
         sendEmail(user.getEmail(), "mail/activationEmail", context, "Jaewa Timesheet - Attivazione Account");
     }
 
-    public void sendWorkdaysExportByEmail(String[] array, Long userId, Integer month, Integer year, File file) throws MailSendingException {
+    public void sendWorkdaysExportByEmail(String[] array, Long userId, Integer month, Integer year, File file) throws MailSendException {
         Locale locale = Locale.getDefault();
         Context context = new Context(locale);
         ApplicationUser user = applicationUserService.findById(userId);
@@ -60,7 +60,7 @@ public class MailService {
         sendEmailToGroup(array, "mail/workdaysExportEmail", context, subject, file);
     }
 
-    public void sendEmail(String sendTo, String templateName, Context context, String subject) throws MailSendingException {
+    public void sendEmail(String sendTo, String templateName, Context context, String subject) throws MailSendException {
         MimeMessage mimeMessage = emailSender.createMimeMessage();
         try {
             String content = templateEngine.process(templateName, context);
@@ -78,7 +78,7 @@ public class MailService {
     }
 
 
-    public void sendResetPasswordEmail(ApplicationUser user, String randomPassword) throws MailSendingException {
+    public void sendResetPasswordEmail(ApplicationUser user, String randomPassword) throws MailSendException {
         Locale locale = Locale.getDefault();
         Context context = new Context(locale);
         context.setVariable(USER, user.getFirstName());
@@ -86,7 +86,16 @@ public class MailService {
         sendEmail(user.getEmail(), "mail/passwordResetEmail", context, "Jaewa Timesheet - Password Reset");
     }
 
-    public void sendEmailToGroup(String[] sendTo, String templateName, Context context, String subject, File file) throws MailSendingException {
+    public void sendResetPasswordConfirmationEmail(ApplicationUser user, String token) throws MailSendException {
+        Locale locale = Locale.getDefault();
+        Context context = new Context(locale);
+        context.setVariable(USER, user.getFirstName());
+        context.setVariable(CONFIRMATION_TOKEN, token);
+        sendEmail(user.getEmail(), "mail/passwordResetConfirmationEmail", context, "Jaewa Timesheet - Confirm Password Reset");
+
+    }
+
+    public void sendEmailToGroup(String[] sendTo, String templateName, Context context, String subject, File file) throws MailSendException {
         MimeMessage mimeMessage = emailSender.createMimeMessage();
         String attachmentFileName = subject.replace("Jaewa - ", "").replace(" ", "_") + ".xlsx";
         try {

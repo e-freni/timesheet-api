@@ -2,15 +2,14 @@ package com.jaewa.timesheet.controller;
 
 import com.jaewa.timesheet.controller.dto.ApplicationUserDto;
 import com.jaewa.timesheet.controller.mapper.ApplicationUserMapper;
-import com.jaewa.timesheet.exception.MailSendingException;
 import com.jaewa.timesheet.exception.UnauthorizedException;
-import com.jaewa.timesheet.exception.UserRegistrationException;
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.UserRole;
 import com.jaewa.timesheet.service.ApplicationUserService;
 import com.jaewa.timesheet.service.AuthorizationService;
 import com.jaewa.timesheet.service.MailService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailSendException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.security.RolesAllowed;
@@ -56,7 +55,7 @@ public class ApplicationUserController {
 
     @PostMapping("/user/new")
     @RolesAllowed("ADMIN")
-    public ResponseEntity<ApplicationUserDto> addUser(@RequestBody ApplicationUserDto applicationUserDto) throws MailSendingException, UserRegistrationException {
+    public ResponseEntity<ApplicationUserDto> addUser(@RequestBody ApplicationUserDto applicationUserDto) throws MailSendException, UnauthorizedException {
         ApplicationUser user = new ApplicationUser();
         applicationUserMapper.toModel(applicationUserDto, user);
 

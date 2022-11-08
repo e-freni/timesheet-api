@@ -51,8 +51,7 @@ public class TokenService {
                 .getBody();
 
         SimpleGrantedAuthority authority = new SimpleGrantedAuthority(claims.get(ROLE_KEY).toString());
-        //FIXME get a better way to convert di userId
-        Token t = new Token(claims.getSubject(), Long.valueOf((Integer) claims.get(USER_ID)));
+        Token t = new Token(claims.getSubject(), Long.parseLong(String.valueOf(claims.get(USER_ID))));
         return new UsernamePasswordAuthenticationToken(t, token, List.of(authority));
     }
 

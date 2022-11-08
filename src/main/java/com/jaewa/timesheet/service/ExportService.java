@@ -2,6 +2,7 @@ package com.jaewa.timesheet.service;
 
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.Workday;
+import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -12,11 +13,14 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+@Log4j2
 
 @Service
 public class ExportService {
@@ -51,10 +55,20 @@ public class ExportService {
         this.applicationUserService = applicationUserService;
     }
 
-    public File exportToFile(Integer year, Integer month, Long userId) throws IOException {
-        File outputFile = new File("temp.xlsx");
-        FileUtils.writeByteArrayToFile(outputFile, export(year, month, userId));
-        return outputFile;
+    public File exportToTempFile(Integer year, Integer month, Long userId) throws IOException {
+        File tempFile = new File("temp.xlsx");
+        FileUtils.writeByteArrayToFile(tempFile, export(year, month, userId));
+        return tempFile;
+    }
+
+    public void deleteTempFile() {
+        String tempFile = "temp.xlsx";
+        try {
+            Files.deleteIfExists(Paths.get(tempFile));
+            log.debug(String.format("File %s has been deleted", tempFile));
+        } catch (IOException e) {
+            log.error(String.format("Can't find %s", tempFile));
+        }
     }
 
     public byte[] export(Integer year, Integer month, Long userId) throws IOException {
