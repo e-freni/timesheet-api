@@ -1,7 +1,9 @@
 package com.jaewa.timesheet.controller;
 
+import com.jaewa.timesheet.controller.dto.SpecialDayDto;
 import com.jaewa.timesheet.controller.dto.SummaryDto;
 import com.jaewa.timesheet.controller.dto.WorkdayDto;
+import com.jaewa.timesheet.controller.mapper.SpecialDayMapper;
 import com.jaewa.timesheet.controller.mapper.SummaryMapper;
 import com.jaewa.timesheet.controller.mapper.WorkdayMapper;
 import com.jaewa.timesheet.exception.IncoherentDataException;
@@ -23,15 +25,19 @@ public class WorkdayController {
     private final WorkdayService workdayService;
     private final ApplicationUserService applicationUserService;
     private final SummaryService summaryService;
+    private final SpecialDayService specialDayService;
     private final WorkdayMapper workdayMapper;
     private final SummaryMapper summaryMapper;
+    private final SpecialDayMapper specialDayMapper;
 
-    public WorkdayController(WorkdayService workdayService, ApplicationUserService applicationUserService, WorkdayMapper workdayMapper, SummaryService summaryService, SummaryMapper summaryMapper) {
+    public WorkdayController(WorkdayService workdayService, ApplicationUserService applicationUserService, SpecialDayService specialDayService, WorkdayMapper workdayMapper, SummaryService summaryService, SummaryMapper summaryMapper, SpecialDayMapper specialDayMapper) {
         this.workdayService = workdayService;
         this.applicationUserService = applicationUserService;
+        this.specialDayService = specialDayService;
         this.workdayMapper = workdayMapper;
         this.summaryService = summaryService;
         this.summaryMapper = summaryMapper;
+        this.specialDayMapper = specialDayMapper;
     }
 
     @GetMapping("/workday")
@@ -98,5 +104,12 @@ public class WorkdayController {
             @PathParam(value = "month") Integer month) throws UnauthorizedException {
         AuthorizationService.checkUserIsAuthorized(userId);
         return ResponseEntity.ok(summaryMapper.toDto(summaryService.getSummaryData(year, month, userId)));
+    }
+
+    @GetMapping("/workday/special-days")
+    public ResponseEntity<List<SpecialDayDto>> getSpecialDays(
+            @PathParam(value = "year") Integer year,
+            @PathParam(value = "month") Integer month) {
+        return ResponseEntity.ok(specialDayMapper.toDtos(specialDayService.getSpecialDays(year, month)));
     }
 }

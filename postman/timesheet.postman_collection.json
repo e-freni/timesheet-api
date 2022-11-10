@@ -1,9 +1,9 @@
 {
 	"info": {
-      "_postman_id": "d2254117-204e-41c6-836b-54ed863bf702",
-      "name": "timesheet",
-      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-    },
+		"_postman_id": "d2254117-204e-41c6-836b-54ed863bf702",
+		"name": "timesheet",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
 	"item": [
 		{
 			"name": "Workday",
@@ -526,7 +526,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"username\":\"efreni\",\n    \"password\":\"password\"\n}",
+					"raw": "{\n    \"username\":\"enrico.freni\",\n    \"password\":\"password\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -534,12 +534,12 @@
 					}
 				},
 				"url": {
-					"raw": "http://localhost:8080/api/account/login",
+					"raw": "http://localhost:8500/api/account/login",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
-					"port": "8080",
+					"port": "8500",
 					"path": [
 						"api",
 						"account",
@@ -549,18 +549,18 @@
 			},
 			"response": []
 		},
-      {
-        "name": "request resetPassword",
-        "event": [
-          {
-            "listen": "test",
-            "script": {
-              "exec": [
-                ""
-              ],
-              "type": "text/javascript"
-            }
-          }
+		{
+			"name": "request resetPassword",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
 			],
 			"request": {
 				"auth": {
@@ -569,73 +569,73 @@
 				"method": "POST",
 				"header": [],
 				"body": {
-                  "mode": "raw",
-                  "raw": "enrico.freni",
-                  "options": {
-                    "raw": {
-                      "language": "json"
-                    }
-                  }
-                },
-              "url": {
-                "raw": "localhost:8500/api/account/request-reset-password",
-                "host": [
-                  "localhost"
-                ],
-                "port": "8500",
-                "path": [
-                  "api",
-                  "account",
-                  "request-reset-password"
-                ]
-              }
-            },
-        "response": []
-      },
-      {
-        "name": "execute resetPassword",
-        "event": [
-          {
-            "listen": "test",
-            "script": {
-              "exec": [
-                ""
-              ],
-              "type": "text/javascript"
-            }
-          }
-        ],
-        "request": {
-          "auth": {
-            "type": "noauth"
-          },
-          "method": "POST",
-          "header": [],
-          "body": {
-            "mode": "raw",
-            "raw": "enrico.freni",
-            "options": {
-              "raw": {
-                "language": "json"
-              }
-            }
-          },
-          "url": {
-            "raw": "localhost:8500/api/account/reset-password",
-            "host": [
-              "localhost"
-            ],
-            "port": "8500",
-            "path": [
-              "api",
-              "account",
-              "reset-password"
-            ]
-          }
-        },
-        "response": []
-      },
-      {
+					"mode": "raw",
+					"raw": "enrico.freni",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8500/api/account/request-reset-password",
+					"host": [
+						"localhost"
+					],
+					"port": "8500",
+					"path": [
+						"api",
+						"account",
+						"request-reset-password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "execute resetPassword",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "enrico.freni",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8500/api/account/reset-password",
+					"host": [
+						"localhost"
+					],
+					"port": "8500",
+					"path": [
+						"api",
+						"account",
+						"reset-password"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "loginInfo",
 			"request": {
 				"method": "GET",
@@ -656,6 +656,46 @@
 						"api",
 						"account",
 						"info"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "getSpecialDay",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{jwtToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8500/api/workday/special-days?year=2023&month=12",
+					"host": [
+						"localhost"
+					],
+					"port": "8500",
+					"path": [
+						"api",
+						"workday",
+						"special-days"
+					],
+					"query": [
+						{
+							"key": "year",
+							"value": "2023"
+						},
+						{
+							"key": "month",
+							"value": "12"
+						}
 					]
 				}
 			},

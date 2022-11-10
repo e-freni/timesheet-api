@@ -2,6 +2,7 @@ package com.jaewa.timesheet.service;
 
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.Workday;
+import com.jaewa.timesheet.model.specialday.EasterUtility;
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.*;
@@ -15,10 +16,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import static com.jaewa.timesheet.model.specialday.FixedSpecialDay.*;
 
 @Log4j2
 
@@ -222,9 +226,9 @@ public class ExportService {
 
         Cell workingHoursTotalCell = createTotalCell(hoursRow, daysHeaderLastEmptyCell, totalWorkingHours);
 
-        //TODO understand how nonWorkingDayHours are handled
+        int totalNonWorkingDayHours = getTotalNonWorkingDayHours(workdays);
 
-        Cell nonWorkingHoursTotalCell = createTotalCell(hoursRow, workingHoursTotalCell.getColumnIndex(), "Cosa ci si mette qui?", IndexedColors.LIGHT_YELLOW.getIndex());
+        Cell nonWorkingHoursTotalCell = createTotalCell(hoursRow, workingHoursTotalCell.getColumnIndex(), totalNonWorkingDayHours, IndexedColors.LIGHT_YELLOW.getIndex());
 
         int totalHolidayHours = workdays.stream()
                 .map(w -> w.isHoliday() ? 8 : 0)
@@ -257,13 +261,7 @@ public class ExportService {
                 .map(Workday::getNightWorkingHours)
                 .mapToInt(w -> w).sum();
 
-        //TODO add calculation nonWorkingDayHours and nightNonWorkingDayHours
-
-        int totalNonWorkingDayHours = 0;
-
-        int totalNightNonWorkingDayHours = 0;
-
-        int totalB = totalWorkingHours + totalNightHours + totalNonWorkingDayHours + totalNightNonWorkingDayHours;
+        int totalB = totalWorkingHours + totalNightHours + totalNonWorkingDayHours;
 
         Cell totalBCell = createTotalCell(hoursRow, totalACell.getColumnIndex(), totalB);
 
@@ -437,10 +435,6 @@ public class ExportService {
             Workday selectedDay = getSelectedDay(workdays, i);
 
             notEntirePermitDays = handleMergedCells(notesRow, notEntirePermitDays, i, notesCellStyle, selectedDay, NOTES_ROW);
-
-            if (selectedDay.getDate() != null) {
-                //TODO resize cell to make notes text fit into
-            }
 
             cell.setCellStyle(notesCellStyle);
             cell.setCellValue(selectedDay.getNotes());
@@ -750,6 +744,36 @@ public class ExportService {
             nextCell.setCellStyle(nextCellStyle);
         }
         return notEntirePermitDays;
+    }
+
+
+    private int getTotalNonWorkingDayHours(List<Workday> workdays) {
+        int totalNonWorkingDayHours = 0;
+        String easter = EasterUtility.calculateEaster(exportYear).getDayAndMonth();
+        String easterMonday = EasterUtility.calculateEasterMonday(exportYear).getDayAndMonth();
+        for (Workday day : workdays) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M");
+            if (day.getDate().format(formatter).equals(NEW_YEARS_EVE.getSpecialDay().getDayAndMonth())
+                    || day.getDate().format(formatter).equals(EPIPHANY.getSpecialDay().getDayAndMonth())
+                    || day.getDate().format(formatter).equals(APRIL_TWENTY_FIFTH.getSpecialDay().getDayAndMonth())
+                    || day.getDate().format(formatter).equals(WORKERS_DAY.getSpecialDay().getDayAndMonth())
+                    || day.getDate().format(formatter).equals(REPUBLIC_DAY.getSpecialDay().getDayAndMonth())
+                    || day.getDate().format(formatter).equals(MIDSUMMER.getSpecialDay().getDayAndMonth())
+                    || day.getDate().format(formatter).equals(MID_AUGUST.getSpecialDay().getDayAndMonth())
+                    || day.getDate().format(formatter).equals(ALL_SAINTS_DAY.getSpecialDay().getDayAndMonth())
+                    || day.getDate().format(formatter).equals(IMMACULATE_CONCEPTION.getSpecialDay().getDayAndMonth())
+                    || day.getDate().format(formatter).equals(CHRISTMAS.getSpecialDay().getDayAndMonth())
+                    || day.getDate().format(formatter).equals(BOXING_DAY.getSpecialDay().getDayAndMonth())
+                    || day.getDate().format(formatter).equals(easter)
+                    || day.getDate().format(formatter).equals(easterMonday)
+                    || day.getDate().getDayOfWeek().equals(DayOfWeek.SATURDAY)
+                    || day.getDate().getDayOfWeek().equals(DayOfWeek.SUNDAY)
+            ) {
+                totalNonWorkingDayHours += day.getWorkingHours() + day.getNightWorkingHours() + day.getExtraHours();
+            }
+
+        }
+        return totalNonWorkingDayHours;
     }
 
 }

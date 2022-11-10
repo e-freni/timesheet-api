@@ -3,18 +3,19 @@ package com.jaewa.timesheet.service;
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.Summary;
 import com.jaewa.timesheet.model.Workday;
+import com.jaewa.timesheet.model.specialday.EasterUtility;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.List;
 
+import static com.jaewa.timesheet.model.specialday.FixedSpecialDay.*;
+
 
 @Service
 public class SummaryService {
-
     private final WorkdayService workdayService;
-
     private final ApplicationUserService applicationUserService;
 
     public SummaryService(WorkdayService workdayService, ApplicationUserService applicationUserService) {
@@ -35,29 +36,28 @@ public class SummaryService {
 
         int accidentAtWorkHours = summaryWorkdays.stream().mapToInt(w -> w.isAccidentAtWork() ? 8 : 0).sum();
 
-        int workHours = summaryWorkdays.stream().mapToInt(Workday::getWorkingHours).sum();
+        int workdays = summaryWorkdays.stream().mapToInt(Workday::getWorkingHours).sum();
         int holidaysHours = summaryWorkdays.stream().mapToInt(w -> w.isHoliday() ? 8 : 0).sum();
         int sicknessHours = summaryWorkdays.stream().mapToInt(w -> w.isSick() ? 8 : 0).sum();
         int permitHours = summaryWorkdays.stream().mapToInt(Workday::getWorkPermitHours).sum();
         int extraHours = summaryWorkdays.stream().mapToInt(Workday::getExtraHours).sum();
         int nightHours = summaryWorkdays.stream().mapToInt(Workday::getNightWorkingHours).sum();
         int funeralLeaveHours = summaryWorkdays.stream().mapToInt(w -> w.isFuneralLeave() ? 8 : 0).sum();
-        int loggedHours = workHours + holidaysHours + sicknessHours + permitHours + nightHours + funeralLeaveHours + extraHours;
+        int loggedHours = workdays + holidaysHours + sicknessHours + permitHours + funeralLeaveHours;
 
         Calendar calendar = Calendar.getInstance();
 
-        int nonWorkinghours = 0;
+        int nonWorkinghours = getWorkOnSpecialDays(month, monthDaysNumber, year);
 
         for (int day = 1; day <= monthDaysNumber; day++) {
-            calendar.set(year, month - 1, day);
+            calendar.set(year, (month - 1), day);
             int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
             if (dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY) {
                 nonWorkinghours += 8;
             }
         }
 
-        //XXX FIXME nonWorkingHours could be useful to define nonWorkingDays after we define how to log them
-        int toLogHours = (monthDaysNumber * 8) - nonWorkinghours - loggedHours - extraHours; // subtract extra hours because they should not be included in the calculation
+        int toLogHours = (monthDaysNumber * 8) - nonWorkinghours - loggedHours;
 
         return Summary.builder()
                 .loggedAccidentAtWorkHours(accidentAtWorkHours)
@@ -71,5 +71,32 @@ public class SummaryService {
                 .toLogHours(toLogHours)
                 .build();
 
+    }
+
+    private int getWorkOnSpecialDays(int month, int monthDaysNumber, int year) {
+        int workOnSpecialDaysHours = 0;
+        String easter = EasterUtility.calculateEaster(year).getDayAndMonth();
+        String easterMonday = EasterUtility.calculateEasterMonday(year).getDayAndMonth();
+        for (int day = 1; day <= monthDaysNumber; day++) {
+            String dayWithMonth = String.format("%s/%s", day, month);
+
+            if (dayWithMonth.equals(NEW_YEARS_EVE.getSpecialDay().getDayAndMonth())
+                    || dayWithMonth.equals(EPIPHANY.getSpecialDay().getDayAndMonth())
+                    || dayWithMonth.equals(APRIL_TWENTY_FIFTH.getSpecialDay().getDayAndMonth())
+                    || dayWithMonth.equals(WORKERS_DAY.getSpecialDay().getDayAndMonth())
+                    || dayWithMonth.equals(REPUBLIC_DAY.getSpecialDay().getDayAndMonth())
+                    || dayWithMonth.equals(MIDSUMMER.getSpecialDay().getDayAndMonth())
+                    || dayWithMonth.equals(MID_AUGUST.getSpecialDay().getDayAndMonth())
+                    || dayWithMonth.equals(ALL_SAINTS_DAY.getSpecialDay().getDayAndMonth())
+                    || dayWithMonth.equals(IMMACULATE_CONCEPTION.getSpecialDay().getDayAndMonth())
+                    || dayWithMonth.equals(CHRISTMAS.getSpecialDay().getDayAndMonth())
+                    || dayWithMonth.equals(BOXING_DAY.getSpecialDay().getDayAndMonth())
+                    || dayWithMonth.equals(easter)
+                    || dayWithMonth.equals(easterMonday)) {
+                workOnSpecialDaysHours += 8;
+            }
+        }
+
+        return workOnSpecialDaysHours;
     }
 }
