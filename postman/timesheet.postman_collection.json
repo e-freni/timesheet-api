@@ -1,9 +1,9 @@
 {
 	"info": {
-		"_postman_id": "9df077d6-aad0-4a9d-8544-49713d4ea910",
-		"name": "timesheet",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
+      "_postman_id": "d2254117-204e-41c6-836b-54ed863bf702",
+      "name": "timesheet",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
 	"item": [
 		{
 			"name": "Workday",
@@ -549,20 +549,18 @@
 			},
 			"response": []
 		},
-		{
-			"name": "resetPassword",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"let responseData=pm.response.json();",
-							"pm.environment.set(\"jwtToken\", responseData.jwt);",
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
+      {
+        "name": "request resetPassword",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                ""
+              ],
+              "type": "text/javascript"
+            }
+          }
 			],
 			"request": {
 				"auth": {
@@ -571,30 +569,73 @@
 				"method": "POST",
 				"header": [],
 				"body": {
-					"mode": "raw",
-					"raw": "efrenii",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "localhost:8080/api/account/resetPassword",
-					"host": [
-						"localhost"
-					],
-					"port": "8080",
-					"path": [
-						"api",
-						"account",
-						"resetPassword"
-					]
-				}
-			},
-			"response": []
-		},
-		{
+                  "mode": "raw",
+                  "raw": "enrico.freni",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+              "url": {
+                "raw": "localhost:8500/api/account/request-reset-password",
+                "host": [
+                  "localhost"
+                ],
+                "port": "8500",
+                "path": [
+                  "api",
+                  "account",
+                  "request-reset-password"
+                ]
+              }
+            },
+        "response": []
+      },
+      {
+        "name": "execute resetPassword",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                ""
+              ],
+              "type": "text/javascript"
+            }
+          }
+        ],
+        "request": {
+          "auth": {
+            "type": "noauth"
+          },
+          "method": "POST",
+          "header": [],
+          "body": {
+            "mode": "raw",
+            "raw": "enrico.freni",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          },
+          "url": {
+            "raw": "localhost:8500/api/account/reset-password",
+            "host": [
+              "localhost"
+            ],
+            "port": "8500",
+            "path": [
+              "api",
+              "account",
+              "reset-password"
+            ]
+          }
+        },
+        "response": []
+      },
+      {
 			"name": "loginInfo",
 			"request": {
 				"method": "GET",
