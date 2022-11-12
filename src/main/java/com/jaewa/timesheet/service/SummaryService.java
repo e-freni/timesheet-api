@@ -45,19 +45,12 @@ public class SummaryService {
         int funeralLeaveHours = summaryWorkdays.stream().mapToInt(w -> w.isFuneralLeave() ? 8 : 0).sum();
         int loggedHours = workdays + holidaysHours + sicknessHours + permitHours + funeralLeaveHours;
 
-        Calendar calendar = Calendar.getInstance();
-
         int nonWorkinghours = getWorkOnSpecialDays(month, monthDaysNumber, year);
-
-        for (int day = 1; day <= monthDaysNumber; day++) {
-            calendar.set(year, (month - 1), day);
-            int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
-            if (dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY) {
-                nonWorkinghours += 8;
-            }
-        }
-
         int toLogHours = (monthDaysNumber * 8) - nonWorkinghours - loggedHours;
+
+        if (toLogHours < 0) {
+            toLogHours = 0;
+        }
 
         return Summary.builder()
                 .loggedAccidentAtWorkHours(accidentAtWorkHours)
@@ -74,11 +67,21 @@ public class SummaryService {
     }
 
     private int getWorkOnSpecialDays(int month, int monthDaysNumber, int year) {
-        int workOnSpecialDaysHours = 0;
+        int nonWorkingHours = 0;
         String easter = EasterUtility.calculateEaster(year).getDayAndMonth();
         String easterMonday = EasterUtility.calculateEasterMonday(year).getDayAndMonth();
+
+        Calendar calendar = Calendar.getInstance();
+
         for (int day = 1; day <= monthDaysNumber; day++) {
             String dayWithMonth = String.format("%s/%s", day, month);
+
+            calendar.set(year, (month - 1), day);
+            int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+            if (dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY) {
+                nonWorkingHours += 8;
+                continue;
+            }
 
             if (dayWithMonth.equals(NEW_YEARS_EVE.getSpecialDay().getDayAndMonth())
                     || dayWithMonth.equals(EPIPHANY.getSpecialDay().getDayAndMonth())
@@ -93,10 +96,10 @@ public class SummaryService {
                     || dayWithMonth.equals(BOXING_DAY.getSpecialDay().getDayAndMonth())
                     || dayWithMonth.equals(easter)
                     || dayWithMonth.equals(easterMonday)) {
-                workOnSpecialDaysHours += 8;
+                nonWorkingHours += 8;
             }
         }
 
-        return workOnSpecialDaysHours;
+        return nonWorkingHours;
     }
 }

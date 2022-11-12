@@ -9,7 +9,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.util.TestPropertyValues;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.transaction.Transactional;
@@ -22,7 +27,23 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @ContextConfiguration(initializers = SummaryServiceTest.Initializer.class)
 @Testcontainers
-class SummaryServiceTest extends BaseDataTest {
+class SummaryServiceTest {
+    @Container
+    public static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer<>("postgres:14")
+            .withDatabaseName("timesheet")
+            .withUsername("sa")
+            .withPassword("sa");
+
+    static class Initializer
+            implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+        public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
+            TestPropertyValues.of(
+                    "spring.datasource.url=" + postgreSQLContainer.getJdbcUrl(),
+                    "spring.datasource.username=" + postgreSQLContainer.getUsername(),
+                    "spring.datasource.password=" + postgreSQLContainer.getPassword()
+            ).applyTo(configurableApplicationContext.getEnvironment());
+        }
+    }
 
     public static final int JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS = 21;
     @Autowired
@@ -107,7 +128,7 @@ class SummaryServiceTest extends BaseDataTest {
         Summary summaryData = summaryService.getSummaryData(2022, 1, u1.getId());
 
         assertEquals(88, summaryData.getLoggedHours());
-        assertEquals(80, summaryData.getToLogHours());
+        assertEquals(72, summaryData.getToLogHours());
         assertEquals(0, summaryData.getLoggedPermitHours());
         assertEquals(0, summaryData.getLoggedHolidaysHours());
         assertEquals(0, summaryData.getLoggedExtraHours());
@@ -121,8 +142,6 @@ class SummaryServiceTest extends BaseDataTest {
     @Transactional
     void getSummaryDataOnNotFullWorkingMonthWithSomeDifferentData() {
         setup();
-
-        //TODO check calculation
 
         for (int i = 1; i <= JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS - 10; i++) {
             Workday workday = Workday.builder()
@@ -223,7 +242,7 @@ class SummaryServiceTest extends BaseDataTest {
                 .accidentAtWork(false)
                 .sick(false)
                 .holiday(false)
-                .workingHours(4)
+                .workingHours(8)
                 .extraHours(0)
                 .workPermitHours(0)
                 .nightWorkingHours(4)
@@ -231,14 +250,14 @@ class SummaryServiceTest extends BaseDataTest {
                 .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS - 4))
                 .build();
         this.workdayRepository.save(workday);
-        //104 working hours - 4 permit - 8 holiday - 8 sickness - 8 accident at work - 4 extra hours - 4 night hours
+        //108 working hours - 4 permit - 8 holiday - 8 sickness - 8 accident at work - 4 extra hours - 4 night hours
 
         workday = Workday.builder()
                 .applicationUser(u1)
                 .accidentAtWork(false)
                 .sick(false)
                 .holiday(false)
-                .workingHours(4)
+                .workingHours(0)
                 .extraHours(0)
                 .workPermitHours(0)
                 .nightWorkingHours(0)
@@ -246,16 +265,23 @@ class SummaryServiceTest extends BaseDataTest {
                 .date(LocalDate.of(2022, 1, JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS - 3))
                 .build();
         this.workdayRepository.save(workday);
+        //108 working hours - 4 permit - 8 holiday - 8 sickness - 8 accident at work - 4 extra hours - 4 night hours - 8 funeral leave
 
         Summary summaryData = summaryService.getSummaryData(2022, 1, u1.getId());
 
+        int workingHours = 168;
+        int epifany = 8;
+
+        workingHours = workingHours - epifany;
+
         int notLoggedHours = 8 * 3;
-        assertEquals(168 - notLoggedHours + extrahours, summaryData.getLoggedHours());
+
+        assertEquals(workingHours - notLoggedHours, summaryData.getLoggedHours());
         assertEquals(24, summaryData.getToLogHours());
         assertEquals(4, summaryData.getLoggedPermitHours());
         assertEquals(4, summaryData.getLoggedExtraHours());
         assertEquals(4, summaryData.getLoggedNightHours());
-        assertEquals(4, summaryData.getLoggedFuneralLeaveHours());
+        assertEquals(8, summaryData.getLoggedFuneralLeaveHours());
         assertEquals(8, summaryData.getLoggedHolidaysHours());
         assertEquals(8, summaryData.getLoggedSicknessHours());
         assertEquals(8, summaryData.getLoggedAccidentAtWorkHours());
