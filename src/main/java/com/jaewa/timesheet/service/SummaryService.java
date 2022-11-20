@@ -63,7 +63,6 @@ public class SummaryService {
                 .loggedHours(loggedHours)
                 .toLogHours(toLogHours)
                 .build();
-
     }
 
     private int getWorkOnSpecialDays(int month, int monthDaysNumber, int year) {

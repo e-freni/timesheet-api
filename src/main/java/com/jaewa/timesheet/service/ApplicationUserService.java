@@ -75,7 +75,6 @@ public class ApplicationUserService {
     }
 
     public ApplicationUser editUser(ApplicationUser user) {
-        changePassword(user.getUsername(), user.getPassword());
         return saveUser(user);
     }
 
