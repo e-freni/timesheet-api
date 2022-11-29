@@ -38,7 +38,7 @@ public class EasterUtility {
 
     public static SpecialDay calculateEasterMonday(int year) {
         LocalDate easterLocalDate = easterAlgorithm(year);
-        LocalDate easterMondayLocalDate = LocalDate.of(easterLocalDate.getYear(), easterLocalDate.getMonth(), easterLocalDate.getDayOfMonth() + 1);
+        LocalDate easterMondayLocalDate = easterLocalDate.plusDays(1);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M");
         return new SpecialDay(easterMondayLocalDate.format(formatter), "Pasquetta");
     }
