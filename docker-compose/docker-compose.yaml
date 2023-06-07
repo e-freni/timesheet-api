@@ -11,6 +11,6 @@ services:
     volumes:
       - postgres:/var/lib/postgresql/data/
 volumes:
-  # Windows is a shit -> docker volume create postgres
+  # Windows is a shit -> execute: docker volume create postgres
   postgres:
     external: true
