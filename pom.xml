@@ -10,12 +10,12 @@
 
     <scm>
         <developerConnection>scm:git:git@github.com:eFreniDeveloper/timesheet.git</developerConnection>
-      <tag>TEST_20230607</tag>
+      <tag>HEAD</tag>
   </scm>
 
     <groupId>com.jaewa</groupId>
     <artifactId>timesheet-api</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
     <name>timesheet</name>
     <description>Time sheet scheduler</description>
