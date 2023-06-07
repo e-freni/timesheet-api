@@ -170,8 +170,8 @@
                 <artifactId>maven-release-plugin</artifactId>
                 <version>3.0.1</version>
                 <configuration>
-                    <tagNameFormat>RELEASE_@{project.version}</tagNameFormat>
-                    <scmCommentPrefix>#42${line.separator}</scmCommentPrefix>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                    <scmCommentPrefix>[RELEASE]${line.separator}</scmCommentPrefix>
                 </configuration>
             </plugin>
             <plugin>
