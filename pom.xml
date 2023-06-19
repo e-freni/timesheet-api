@@ -10,8 +10,8 @@
 
     <scm>
         <developerConnection>scm:git:git@github.com:eFreniDeveloper/timesheet.git</developerConnection>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <groupId>com.jaewa</groupId>
     <artifactId>timesheet-api</artifactId>
@@ -237,7 +237,7 @@
                         <image>amazoncorretto:11-al2023-jdk</image>
                     </from>
                     <to>
-                        <image>timesheet-api:${project.version}</image>
+                        <image>ghcr.io/e-freni-developer/timesheet-api:${project.version}</image>
                     </to>
                 </configuration>
             </plugin>
