@@ -9,14 +9,13 @@
     </parent>
 
     <scm>
-        <developerConnection>scm:git:git@github.com:eFreniDeveloper/timesheet.git</developerConnection>
+        <developerConnection>scm:git:git@github.com:e-freni-developer/timesheet.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
     <groupId>com.jaewa</groupId>
     <artifactId>timesheet-api</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <version>1.0.0</version>
     <name>timesheet</name>
     <description>Time sheet scheduler</description>
     <properties>
@@ -53,7 +52,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -204,14 +202,6 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>3.2.2</version>
-                <configuration>
-                    <outputDirectory>./target/package</outputDirectory>
-                </configuration>
-            </plugin>
-            <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptors>
@@ -231,7 +221,7 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>3.1.1</version>
+                <version>3.2.1</version>
                 <configuration>
                     <from>
                         <image>amazoncorretto:11-al2023-jdk</image>
@@ -239,9 +229,31 @@
                     <to>
                         <image>ghcr.io/e-freni-developer/timesheet-api:${project.version}</image>
                     </to>
+                    <container>
+                        <entrypoint>
+                            <shell>bash</shell>
+                            <option>-c</option>
+                            <arg>/entrypoint.sh</arg>
+                        </entrypoint>
+                        <ports>
+                            <port>8500</port>
+                        </ports>
+                        <environment>
+                            <SPRING_OUTPUT_ANSI_ENABLED>ALWAYS</SPRING_OUTPUT_ANSI_ENABLED>
+                        </environment>
+                        <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+                    </container>
+                    <extraDirectories>
+                        <paths>src/main/resources/jib</paths>
+                        <permissions>
+                            <permission>
+                                <file>/entrypoint.sh</file>
+                                <mode>755</mode>
+                            </permission>
+                        </permissions>
+                    </extraDirectories>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
 </project>
