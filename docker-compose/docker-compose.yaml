@@ -1,4 +1,19 @@
 services:
+  timesheet-api:
+    image: ghcr.io/e-freni-developer/timesheet-api:1.0.0
+    container_name: timesheet-api
+    restart: unless-stopped
+    ports:
+      - 8500:8500
+    env_file: ./env.list
+
+  timesheet-ui:
+    image: ghcr.io/e-freni-developer/timesheet-ui:1.0.0
+    container_name: timesheet-ui
+    ports:
+      - 8501:80
+    restart: unless-stopped
+
   postgres-database:
     image: postgres:14
     restart: always
@@ -10,6 +25,16 @@ services:
       - '5432:5432'
     volumes:
       - postgres:/var/lib/postgresql/data/
+
+  apache_2.4:
+    container_name: apache
+    image: httpd:2.4
+    restart: always
+    ports:
+      - 80:80
+    volumes:
+      - /opt/docker_volumes/apache/:/usr/local/apache2
+
 volumes:
   # Windows is a shit -> execute: docker volume create postgres
   postgres:
