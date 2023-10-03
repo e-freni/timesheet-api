@@ -227,7 +227,7 @@
                 <version>3.2.1</version>
                 <configuration>
                     <from>
-                        <image>amazoncorretto:11-al2023-jdk</image>
+                        <image>amazoncorretto:11</image>
                     </from>
                     <to>
                         <image>ghcr.io/e-freni-developer/timesheet-api:${project.version}</image>
