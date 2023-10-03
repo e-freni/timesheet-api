@@ -1,6 +1,6 @@
 services:
   timesheet-api:
-    image: ghcr.io/e-freni-developer/timesheet-api:1.0.1-SNAPSHOT
+    image: ghcr.io/e-freni-developer/timesheet-api:1.0.1
     container_name: timesheet-api
     restart: unless-stopped
     ports:
