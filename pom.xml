@@ -15,7 +15,7 @@
 
     <groupId>com.jaewa</groupId>
     <artifactId>timesheet-api</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <name>timesheet</name>
     <description>Time sheet scheduler</description>
     <properties>
