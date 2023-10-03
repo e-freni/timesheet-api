@@ -221,7 +221,11 @@ public class ExportService {
         int daysHeaderLastEmptyCell = writeSeparatorCell(hoursRow, daysInMonth + notEntirePermitDays);
 
         int totalWorkingHours = workdays.stream()
-                .map(w -> w.getWorkingHours() + w.getWorkPermitHours() + (w.isFuneralLeave() ? 8 : 0))
+                .map(w -> w.getWorkingHours() + (w.isFuneralLeave() ? 8 : 0))
+                .mapToInt(w -> w).sum();
+
+        int totalWorkPermitHours = workdays.stream()
+                .map(Workday::getWorkPermitHours)
                 .mapToInt(w -> w).sum();
 
         Cell workingHoursTotalCell = createTotalCell(hoursRow, daysHeaderLastEmptyCell, totalWorkingHours);
@@ -250,7 +254,7 @@ public class ExportService {
                 .map(Workday::getExtraHours)
                 .mapToInt(w -> w).sum();
 
-        int totalA = (int) Math.round(totalHoursTotalCell.getNumericCellValue() + totalExtraHours);
+        int totalA = (int) Math.round(totalHoursTotalCell.getNumericCellValue() + totalExtraHours + totalWorkPermitHours);
 
         Cell totalACell = createTotalCell(hoursRow, totalHoursTotalCell.getColumnIndex(), totalA);
 
@@ -261,7 +265,7 @@ public class ExportService {
                 .map(Workday::getNightWorkingHours)
                 .mapToInt(w -> w).sum();
 
-        int totalB = totalWorkingHours + totalNightHours + totalNonWorkingDayHours;
+        int totalB = totalWorkingHours + totalNightHours + totalNonWorkingDayHours + totalWorkPermitHours;
 
         Cell totalBCell = createTotalCell(hoursRow, totalACell.getColumnIndex(), totalB);
 
