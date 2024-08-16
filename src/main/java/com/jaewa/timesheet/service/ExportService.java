@@ -25,7 +25,6 @@ import java.util.List;
 import static com.jaewa.timesheet.model.specialday.FixedSpecialDay.*;
 
 @Log4j2
-
 @Service
 public class ExportService {
 
@@ -35,16 +34,16 @@ public class ExportService {
     public static final int DAYS_START_COLUMN = 1;
     public static final int HOUR_LABEL = DAYS_START_COLUMN + 1;
     public static final int DAYS_HEADER_FIRST_EMPTY_CELL = DAYS_START_COLUMN + 1;
-    private static final int DAYS_HEADER_ROW = 3;
-    private static final int MORNING_HOURS_ROW = 4;
-    private static final int NIGHT_HOURS_ROW = 5;
-    private static final int EXTRA_HOURS_ROW = 6;
-    private static final int NOTES_ROW = 7;
-    private static final int LEGEND_FIRST_ROW = 11;
-    private static final int LEGEND_SECOND_ROW = 13;
-    private static final int LEGEND_FIRST_COLUMN = 3;
-    private static final int LEGEND_MIDDLE_COLUMN = 11;
-    private static final int LEGEND_LAST_COLUMN = 19;
+    public static final int DAYS_HEADER_ROW = 3;
+    public static final int MORNING_HOURS_ROW = 4;
+    public static final int NIGHT_HOURS_ROW = 5;
+    public static final int EXTRA_HOURS_ROW = 6;
+    public static final int NOTES_ROW = 7;
+    public static final int LEGEND_FIRST_ROW = 11;
+    public static final int LEGEND_SECOND_ROW = 13;
+    public static final int LEGEND_FIRST_COLUMN = 3;
+    public static final int LEGEND_MIDDLE_COLUMN = 11;
+    public static final int LEGEND_LAST_COLUMN = 19;
 
     private final WorkdayService workdayService;
     private final ApplicationUserService applicationUserService;
