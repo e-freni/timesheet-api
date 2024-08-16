@@ -287,4 +287,97 @@ class SummaryServiceTest {
         assertEquals(8, summaryData.getLoggedAccidentAtWorkHours());
     }
 
+    @Test
+    @Transactional
+    void getSummaryDataOnMonthWithSpecialDays() {
+        setup();
+
+        for (int i = 1; i <= 22; i++) {
+            Workday workday = Workday.builder()
+                    .applicationUser(u1)
+                    .accidentAtWork(false)
+                    .sick(false)
+                    .holiday(false)
+                    .workingHours(8)
+                    .extraHours(0)
+                    .workPermitHours(0)
+                    .nightWorkingHours(0)
+                    .funeralLeave(false)
+                    .date(LocalDate.of(2023, 12, i))
+                    .build();
+            this.workdayRepository.save(workday);
+        }
+
+        Summary summaryData = summaryService.getSummaryData(2023, 12, u1.getId());
+
+        assertEquals(176, summaryData.getLoggedHours());
+        assertEquals(0, summaryData.getToLogHours());
+        assertEquals(0, summaryData.getLoggedPermitHours());
+        assertEquals(0, summaryData.getLoggedHolidaysHours());
+        assertEquals(0, summaryData.getLoggedExtraHours());
+        assertEquals(0, summaryData.getLoggedNightHours());
+        assertEquals(0, summaryData.getLoggedSicknessHours());
+        assertEquals(0, summaryData.getLoggedAccidentAtWorkHours());
+        assertEquals(0, summaryData.getLoggedFuneralLeaveHours());
+    }
+
+    @Test
+    @Transactional
+    void getSummaryDataOnMonthWithWeekendsAndHolidays() {
+        setup();
+
+        for (int i = 1; i <= 21; i++) {
+            Workday workday = Workday.builder()
+                    .applicationUser(u1)
+                    .accidentAtWork(false)
+                    .sick(false)
+                    .holiday(false)
+                    .workingHours(8)
+                    .extraHours(0)
+                    .workPermitHours(0)
+                    .nightWorkingHours(0)
+                    .funeralLeave(false)
+                    .date(LocalDate.of(2024, 2, i))
+                    .build();
+            this.workdayRepository.save(workday);
+        }
+
+        Summary summaryData = summaryService.getSummaryData(2024, 2, u1.getId());
+
+        int totalHoursInFebruary = 29 * 8;
+        int nonWorkingHours = 8 * 8; // february weekends
+        int expectedLoggedHours = totalHoursInFebruary - nonWorkingHours;
+
+        assertEquals(expectedLoggedHours, summaryData.getLoggedHours());
+        assertEquals(0, summaryData.getToLogHours());
+    }
+
+    @Test
+    @Transactional
+    void getSummaryDataWithExtraAndNightHours() {
+        setup();
+
+        Workday workday = Workday.builder()
+                .applicationUser(u1)
+                .accidentAtWork(false)
+                .sick(false)
+                .holiday(false)
+                .workingHours(8)
+                .extraHours(4)
+                .workPermitHours(0)
+                .nightWorkingHours(2)
+                .funeralLeave(false)
+                .date(LocalDate.of(2023, 11, 15))
+                .build();
+        this.workdayRepository.save(workday);
+
+        Summary summaryData = summaryService.getSummaryData(2023, 11, u1.getId());
+
+        assertEquals(8, summaryData.getLoggedHours());
+        assertEquals(4, summaryData.getLoggedExtraHours());
+        assertEquals(2, summaryData.getLoggedNightHours());
+        assertEquals(160, summaryData.getToLogHours());
+    }
+
+
 }
