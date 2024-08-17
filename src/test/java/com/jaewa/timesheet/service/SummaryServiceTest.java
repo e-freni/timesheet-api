@@ -1,5 +1,6 @@
 package com.jaewa.timesheet.service;
 
+import com.jaewa.timesheet.AbstractIntegrationTest;
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.Summary;
 import com.jaewa.timesheet.model.Workday;
@@ -7,15 +8,6 @@ import com.jaewa.timesheet.model.repository.ApplicationUserRepository;
 import com.jaewa.timesheet.model.repository.WorkdayRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
@@ -23,27 +15,7 @@ import java.time.LocalDate;
 import static com.jaewa.timesheet.model.UserRole.USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ContextConfiguration(initializers = SummaryServiceTest.Initializer.class)
-@Testcontainers
-class SummaryServiceTest {
-    @Container
-    public static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer<>("postgres:14")
-            .withDatabaseName("timesheet")
-            .withUsername("sa")
-            .withPassword("sa");
-
-    static class Initializer
-            implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-            TestPropertyValues.of(
-                    "spring.datasource.url=" + postgreSQLContainer.getJdbcUrl(),
-                    "spring.datasource.username=" + postgreSQLContainer.getUsername(),
-                    "spring.datasource.password=" + postgreSQLContainer.getPassword()
-            ).applyTo(configurableApplicationContext.getEnvironment());
-        }
-    }
+class SummaryServiceTest extends AbstractIntegrationTest {
 
     public static final int JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS = 21;
     @Autowired
@@ -58,6 +30,7 @@ class SummaryServiceTest {
     ApplicationUser u1;
 
     private void setup() {
+
         u1 = ApplicationUser.builder()
                 .username("baka")
                 .email("baka@gmail.com")
