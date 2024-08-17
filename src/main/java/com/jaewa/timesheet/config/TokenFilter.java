@@ -17,6 +17,8 @@ import java.io.IOException;
 
 public class TokenFilter extends GenericFilterBean {
 
+    public static final int NOT_FOUND_ERROR_CODE = 401;
+    public static final int BEGIN_INDEX = 7;
     private final TokenService tokenService;
 
     public TokenFilter(TokenService tokenService) {
@@ -30,7 +32,7 @@ public class TokenFilter extends GenericFilterBean {
 
         String jwt = getTokenFromHeader(httpRequest);
         if (StringUtils.isBlank(jwt)) {
-            httpResponse.sendError(401);
+            httpResponse.sendError(NOT_FOUND_ERROR_CODE);
             return;
         }
 
@@ -40,11 +42,11 @@ public class TokenFilter extends GenericFilterBean {
         chain.doFilter(request, response);
     }
 
-    private String getTokenFromHeader(HttpServletRequest request) {
+    private static String getTokenFromHeader(HttpServletRequest request) {
         String bearerToken = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (StringUtils.startsWith(bearerToken, "Bearer ")) {
-            return bearerToken.substring(7);
+            return bearerToken.substring(BEGIN_INDEX);
         }
 
         return null;

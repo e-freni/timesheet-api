@@ -44,6 +44,22 @@ public class ExportService {
     public static final int LEGEND_FIRST_COLUMN = 3;
     public static final int LEGEND_MIDDLE_COLUMN = 11;
     public static final int LEGEND_LAST_COLUMN = 19;
+    public static final int COLUMN_WIDTH = 300;
+    public static final int PANEL_HEIGHT = 1000;
+    public static final int HEADER_ROW_HEIGHT = 500;
+    public static final int DAYS_START_COLUMN_WIDTH = 7000;
+    public static final int DAYS_HEADER_FIRST_EMPTY_CELL_WIDTH = 4000;
+    public static final int MAX_WORKING_HOURS = 8;
+    public static final int DAYS_HEADER_FIRST_EMPTY_CELL_COLUMN_WIDTH = 1500;
+    public static final int DAYS_HEADER_LAST_EMPTY_CELL_COLUMN_WIDTH = 200;
+    public static final int SHEET_TOTAL_COLUMN_WIDTH = 2500;
+    public static final int INFO_PANEL_FONT_SIZE = 16;
+    public static final int NAME_CELL_FONT_SIZE = 14;
+    public static final int DAY_NUMBER_HEADER_FONT_SIZE = 11;
+    public static final int CUSTOM_FONT_SIZE = 12;
+    public static final int RED_FONT_SIZE = 10;
+    public static final int TWO_COLUMN_AFTER_CURRENT = 2;
+    public static final int THREE_NEXT_REGIONS = 3;
 
     private final WorkdayService workdayService;
     private final ApplicationUserService applicationUserService;
@@ -84,10 +100,10 @@ public class ExportService {
 
         sheet = workbook.createSheet(String.format("%s_%s_%s_%s", user.getFirstName(), user.getLastName(), this.exportMonth, this.exportYear));
 
-        sheet.setColumnWidth(0, 300);
+        sheet.setColumnWidth(0, COLUMN_WIDTH);
 
         Row infoPanelRow = sheet.createRow(1);
-        infoPanelRow.setHeight((short) 1000);
+        infoPanelRow.setHeight((short) PANEL_HEIGHT);
 
         List<Workday> workdays = getWorkdays(user);
         writeInfoPanel(infoPanelRow);
@@ -122,7 +138,7 @@ public class ExportService {
         Row headerRow = sheet.createRow(DAYS_HEADER_ROW);
         Cell headerCell = headerRow.createCell(DAYS_START_COLUMN);
         headerCell.setCellStyle(getNameCellStyle());
-        headerRow.setHeight((short) 500);
+        headerRow.setHeight((short) HEADER_ROW_HEIGHT);
 
 
         for (int i = DAYS_START_COLUMN; i <= DAYS_START_COLUMN + 1; i++) {
@@ -131,9 +147,10 @@ public class ExportService {
         }
 
         headerCell.setCellValue("Nome");
-        sheet.setColumnWidth(DAYS_START_COLUMN, 7000);
-        headerCell = headerRow.createCell(DAYS_HEADER_FIRST_EMPTY_CELL); //cella vuota prima dei giorni
-        sheet.setColumnWidth(DAYS_HEADER_FIRST_EMPTY_CELL, 4000);
+        sheet.setColumnWidth(DAYS_START_COLUMN, DAYS_START_COLUMN_WIDTH);
+        //cella vuota prima dei giorni
+        headerCell = headerRow.createCell(DAYS_HEADER_FIRST_EMPTY_CELL);
+        sheet.setColumnWidth(DAYS_HEADER_FIRST_EMPTY_CELL, DAYS_HEADER_FIRST_EMPTY_CELL_WIDTH);
         headerCell.setCellStyle(getEmptyHeaderCellStyle());
 
         int daysInMonth = getDaysInMonth();
@@ -148,7 +165,7 @@ public class ExportService {
             headerCell.setCellStyle(getDayNumberHeaderCellStyle());
 
             if (selectedDay.getWorkPermitHours() > 0) {
-                if (selectedDay.getWorkPermitHours() < 8) {
+                if (selectedDay.getWorkPermitHours() < MAX_WORKING_HOURS) {
                     sheet.addMergedRegion(new CellRangeAddress(DAYS_HEADER_ROW, DAYS_HEADER_ROW, DAYS_HEADER_FIRST_EMPTY_CELL + notEntirePermitDays + calendarDay, DAYS_HEADER_FIRST_EMPTY_CELL + notEntirePermitDays + calendarDay + 1));
                     headerCell = headerRow.createCell(DAYS_HEADER_FIRST_EMPTY_CELL + calendarDay + notEntirePermitDays + 1);
                     notEntirePermitDays++;
@@ -159,7 +176,7 @@ public class ExportService {
         }
 
         for (int i = 1; i <= daysInMonth + notEntirePermitDays; i++) {
-            sheet.setColumnWidth(DAYS_HEADER_FIRST_EMPTY_CELL + i, 1500);
+            sheet.setColumnWidth(DAYS_HEADER_FIRST_EMPTY_CELL + i, DAYS_HEADER_FIRST_EMPTY_CELL_COLUMN_WIDTH);
         }
 
         int daysHeaderLastEmptyCell = writeSeparatorCell(headerRow, daysInMonth + notEntirePermitDays);
@@ -178,7 +195,7 @@ public class ExportService {
         Row hoursRow = sheet.createRow(MORNING_HOURS_ROW);
         Cell currentMonthDateCell = hoursRow.createCell(DAYS_START_COLUMN);
         currentMonthDateCell.setCellStyle(getHourLabelStyle(true));
-        hoursRow.setHeight((short) 500);
+        hoursRow.setHeight((short) HEADER_ROW_HEIGHT);
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/yyyy");
         currentMonthDateCell.setCellValue(LocalDate.of(exportYear, exportMonth, 1).format(formatter));
@@ -220,7 +237,7 @@ public class ExportService {
         int daysHeaderLastEmptyCell = writeSeparatorCell(hoursRow, daysInMonth + notEntirePermitDays);
 
         int totalWorkingHours = workdays.stream()
-                .map(w -> w.getWorkingHours() + (w.isFuneralLeave() ? 8 : 0))
+                .map(w -> w.getWorkingHours() + (w.isFuneralLeave() ? MAX_WORKING_HOURS : 0))
                 .mapToInt(w -> w).sum();
 
         int totalWorkPermitHours = workdays.stream()
@@ -234,13 +251,13 @@ public class ExportService {
         Cell nonWorkingHoursTotalCell = createTotalCell(hoursRow, workingHoursTotalCell.getColumnIndex(), totalNonWorkingDayHours, IndexedColors.LIGHT_YELLOW.getIndex());
 
         int totalHolidayHours = workdays.stream()
-                .map(w -> w.isHoliday() ? 8 : 0)
+                .map(w -> w.isHoliday() ? MAX_WORKING_HOURS : 0)
                 .mapToInt(w -> w).sum();
 
         Cell holidaysHoursTotalCell = createTotalCell(hoursRow, nonWorkingHoursTotalCell.getColumnIndex(), totalHolidayHours, IndexedColors.LIGHT_GREEN.getIndex());
 
         int totalSicknessHours = workdays.stream()
-                .map(w -> w.isSick() ? 8 : 0)
+                .map(w -> w.isSick() ? MAX_WORKING_HOURS : 0)
                 .mapToInt(w -> w).sum();
 
         Cell sicknessHoursTotalCell = createTotalCell(hoursRow, holidaysHoursTotalCell.getColumnIndex(), totalSicknessHours, IndexedColors.ROSE.getIndex());
@@ -277,7 +294,7 @@ public class ExportService {
         Row nightHoursRow = sheet.createRow(NIGHT_HOURS_ROW);
         Cell userFullNameCell = nightHoursRow.createCell(DAYS_START_COLUMN);
         userFullNameCell.setCellStyle(getHourLabelStyle(true));
-        nightHoursRow.setHeight((short) 500);
+        nightHoursRow.setHeight((short) HEADER_ROW_HEIGHT);
 
         userFullNameCell.setCellValue(String.format("%s %s", user.getFirstName(), user.getLastName()));
         sheet.addMergedRegion(new CellRangeAddress(NIGHT_HOURS_ROW, NOTES_ROW, DAYS_START_COLUMN, DAYS_START_COLUMN));
@@ -327,20 +344,20 @@ public class ExportService {
 
         int totalACell = nightHoursTotalCellCopy.getColumnIndex() + 1;
         sheet.getRow(NIGHT_HOURS_ROW).createCell(totalACell).setCellStyle(getDayNumberHeaderCellStyle());
-        int totalBCell = nightHoursTotalCellCopy.getColumnIndex() + 2;
+        int totalBCell = nightHoursTotalCellCopy.getColumnIndex() + TWO_COLUMN_AFTER_CURRENT;
         sheet.getRow(NIGHT_HOURS_ROW).createCell(totalBCell).setCellStyle(getDayNumberHeaderCellStyle());
     }
 
     private void setRedFontStyle(CellStyle notesCellStyle) {
         XSSFFont font = workbook.createFont();
         font.setColor(IndexedColors.RED.getIndex());
-        font.setFontHeightInPoints((short) 10);
+        font.setFontHeightInPoints((short) RED_FONT_SIZE);
         notesCellStyle.setFont(font);
     }
 
     private XSSFFont setRedFontForTotals(Cell nightWorkingHoursTotalCell) {
         XSSFFont font = workbook.createFont();
-        font.setFontHeightInPoints((short) 11);
+        font.setFontHeightInPoints((short) DAY_NUMBER_HEADER_FONT_SIZE);
         font.setBold(true);
         font.setColor(IndexedColors.RED.getIndex());
         nightWorkingHoursTotalCell.getCellStyle().setFont(font);
@@ -357,7 +374,7 @@ public class ExportService {
         Row extraHoursRow = sheet.createRow(EXTRA_HOURS_ROW);
         Cell emptyCell = extraHoursRow.createCell(DAYS_START_COLUMN);
         emptyCell.setCellStyle(getHourLabelStyle(true));
-        extraHoursRow.setHeight((short) 500);
+        extraHoursRow.setHeight((short) HEADER_ROW_HEIGHT);
 
         Cell extraHourLabelCell = extraHoursRow.createCell(HOUR_LABEL);
         extraHourLabelCell.setCellStyle(getHourLabelStyle(false));
@@ -393,12 +410,12 @@ public class ExportService {
 
         Cell nonWorkingHoursTotalCell = createTotalCell(extraHoursRow, extraHoursTotalCell.getColumnIndex(), "", IndexedColors.LIGHT_YELLOW.getIndex());
 
-        Cell extraHoursTotalCellCopy = createTotalCell(extraHoursRow, nonWorkingHoursTotalCell.getColumnIndex() + 2, totalExtraHours);
+        Cell extraHoursTotalCellCopy = createTotalCell(extraHoursRow, nonWorkingHoursTotalCell.getColumnIndex() + TWO_COLUMN_AFTER_CURRENT, totalExtraHours);
         extraHoursTotalCellCopy.getCellStyle().setFont(font);
 
         int totalACell = extraHoursTotalCellCopy.getColumnIndex() + 1;
         sheet.getRow(EXTRA_HOURS_ROW).createCell(totalACell).setCellStyle(getDayNumberHeaderCellStyle());
-        int totalBCell = extraHoursTotalCellCopy.getColumnIndex() + 2;
+        int totalBCell = extraHoursTotalCellCopy.getColumnIndex() + TWO_COLUMN_AFTER_CURRENT;
         sheet.getRow(EXTRA_HOURS_ROW).createCell(totalBCell).setCellStyle(getDayNumberHeaderCellStyle());
     }
 
@@ -415,7 +432,7 @@ public class ExportService {
         Row notesRow = sheet.createRow(NOTES_ROW);
         Cell emptyCell = notesRow.createCell(DAYS_START_COLUMN);
         emptyCell.setCellStyle(getNotesLabelStyle(true));
-        notesRow.setHeight((short) 500);
+        notesRow.setHeight((short) HEADER_ROW_HEIGHT);
 
         Cell nightHourLabelCell = notesRow.createCell(HOUR_LABEL);
         nightHourLabelCell.setCellStyle(getNotesLabelStyle(false));
@@ -488,7 +505,7 @@ public class ExportService {
         CellStyle legendStyle = workbook.createCellStyle();
         setThinSquareStyle(legendStyle);
         XSSFFont font = workbook.createFont();
-        font.setFontHeightInPoints((short) 10);
+        font.setFontHeightInPoints((short) RED_FONT_SIZE);
         legendStyle.setFillForegroundColor(backgroundColorIndex);
         legendStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         setStandardTextAlignment(legendStyle);
@@ -497,16 +514,16 @@ public class ExportService {
     }
 
     private void writeLegendDescription(Row legendRow, int column, String legendDescription) {
-        int columnOffset = column + 2;
+        int columnOffset = column + TWO_COLUMN_AFTER_CURRENT;
         Cell legendCell = legendRow.createCell(columnOffset);
         CellStyle legendStyle = workbook.createCellStyle();
         XSSFFont font = workbook.createFont();
-        font.setFontHeightInPoints((short) 12);
+        font.setFontHeightInPoints((short) CUSTOM_FONT_SIZE);
         setStandardTextAlignment(legendStyle);
         legendCell.setCellValue(legendDescription);
         legendCell.setCellStyle(legendStyle);
         int rowNum = legendRow.getRowNum();
-        sheet.addMergedRegion(new CellRangeAddress(rowNum, rowNum, columnOffset, columnOffset + 3));
+        sheet.addMergedRegion(new CellRangeAddress(rowNum, rowNum, columnOffset, columnOffset + THREE_NEXT_REGIONS));
 
     }
 
@@ -515,7 +532,7 @@ public class ExportService {
         CellStyle signStyle = workbook.createCellStyle();
         setStandardTextAlignment(signStyle);
         XSSFFont font = workbook.createFont();
-        font.setFontHeightInPoints((short) 12);
+        font.setFontHeightInPoints((short) CUSTOM_FONT_SIZE);
         equalSign.setCellStyle(signStyle);
         signStyle.setFont(font);
         equalSign.setCellValue("=");
@@ -527,7 +544,7 @@ public class ExportService {
     }
 
     private int handleMergedCells(Row currentRow, int notEntirePermitDays, int i, CellStyle cellStyle, Workday selectedDay, int rowIndex) {
-        if (selectedDay.getWorkPermitHours() > 0 && selectedDay.getWorkPermitHours() < 8) {
+        if (selectedDay.getWorkPermitHours() > 0 && selectedDay.getWorkPermitHours() < MAX_WORKING_HOURS) {
             sheet.addMergedRegion(new CellRangeAddress(rowIndex, rowIndex, DAYS_HEADER_FIRST_EMPTY_CELL + notEntirePermitDays + i, DAYS_HEADER_FIRST_EMPTY_CELL + notEntirePermitDays + i + 1));
             Cell nextCell = currentRow.createCell(HOUR_LABEL + i + 1 + notEntirePermitDays);
 
@@ -545,47 +562,47 @@ public class ExportService {
         int daysHeaderLastEmptyCell = DAYS_HEADER_FIRST_EMPTY_CELL + daysInMonth + 1;
         headerCell = headerRow.createCell(daysHeaderLastEmptyCell);
         headerCell.setCellStyle(getDayNumberHeaderCellStyle());
-        sheet.setColumnWidth(daysHeaderLastEmptyCell, 200);
+        sheet.setColumnWidth(daysHeaderLastEmptyCell, DAYS_HEADER_LAST_EMPTY_CELL_COLUMN_WIDTH);
         return daysHeaderLastEmptyCell;
     }
 
 
-    private void addWorkingHours(Cell cell, Workday selectedDay) {
+    private static void addWorkingHours(Cell cell, Workday selectedDay) {
         if (selectedDay.getWorkingHours() > 0) {
             cell.setCellValue(selectedDay.getWorkingHours());
         }
     }
 
-    private void addNightWorkingHours(Cell cell, Workday selectedDay) {
+    private static void addNightWorkingHours(Cell cell, Workday selectedDay) {
         if (selectedDay.getNightWorkingHours() > 0) {
             cell.setCellValue(selectedDay.getNightWorkingHours());
         }
     }
 
 
-    private void addFuneralLeave(Cell cell, Workday selectedDay) {
+    private static void addFuneralLeave(Cell cell, Workday selectedDay) {
         if (selectedDay.isFuneralLeave()) {
             cell.setCellValue("PL");
         }
     }
 
-    private void addAccidentAtWork(Cell cell, Workday selectedDay) {
+    private static void addAccidentAtWork(Cell cell, Workday selectedDay) {
         if (selectedDay.isAccidentAtWork()) {
             cell.setCellValue("I");
         }
     }
 
-    private void addSickness(Cell cell, CellStyle hoursCellStyle, Workday selectedDay) {
+    private static void addSickness(Cell cell, CellStyle hoursCellStyle, Workday selectedDay) {
         if (selectedDay.isSick()) {
-            cell.setCellValue(8);
+            cell.setCellValue(MAX_WORKING_HOURS);
             hoursCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
             hoursCellStyle.setFillForegroundColor(IndexedColors.ROSE.getIndex());
         }
     }
 
-    private void addHoliday(Cell cell, CellStyle hoursCellStyle, Workday selectedDay) {
+    private static void addHoliday(Cell cell, CellStyle hoursCellStyle, Workday selectedDay) {
         if (selectedDay.isHoliday()) {
-            cell.setCellValue(8);
+            cell.setCellValue(MAX_WORKING_HOURS);
             hoursCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
             hoursCellStyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
         }
@@ -601,7 +618,7 @@ public class ExportService {
         Cell cell = row.createCell(totalCell);
         cell.setCellValue(title);
         cell.setCellStyle(getDayNumberHeaderCellStyle(backgroundColor));
-        sheet.setColumnWidth(totalCell, 2500);
+        sheet.setColumnWidth(totalCell, SHEET_TOTAL_COLUMN_WIDTH);
         return cell;
     }
 
@@ -610,7 +627,7 @@ public class ExportService {
         Cell cell = row.createCell(totalCell);
         cell.setCellValue(hours);
         cell.setCellStyle(getDayNumberHeaderCellStyle(backgroundColor));
-        sheet.setColumnWidth(totalCell, 2500);
+        sheet.setColumnWidth(totalCell, SHEET_TOTAL_COLUMN_WIDTH);
         return cell;
     }
 
@@ -632,7 +649,7 @@ public class ExportService {
         infoPanelStyle.setBorderRight(BorderStyle.THIN);
         XSSFFont font = workbook.createFont();
         font.setFontName("Arial");
-        font.setFontHeightInPoints((short) 16);
+        font.setFontHeightInPoints((short) INFO_PANEL_FONT_SIZE);
         font.setBold(true);
         infoPanelStyle.setFont(font);
 
@@ -643,7 +660,7 @@ public class ExportService {
         CellStyle nameCellStyle = workbook.createCellStyle();
         nameCellStyle.setWrapText(true);
         XSSFFont font = workbook.createFont();
-        font.setFontHeightInPoints((short) 14);
+        font.setFontHeightInPoints((short) NAME_CELL_FONT_SIZE);
         font.setBold(true);
         font.setColor(IndexedColors.RED.getIndex());
         nameCellStyle.setFont(font);
@@ -670,7 +687,7 @@ public class ExportService {
         CellStyle dayNumberHeaderStyle = workbook.createCellStyle();
         setHardSquareStyle(dayNumberHeaderStyle);
         XSSFFont font = workbook.createFont();
-        font.setFontHeightInPoints((short) 11);
+        font.setFontHeightInPoints((short) DAY_NUMBER_HEADER_FONT_SIZE);
         font.setBold(true);
 
         //XXX fake array to allow optional parameter
@@ -697,7 +714,7 @@ public class ExportService {
 
     private void setCustomFont(boolean bold, CellStyle dateHeaderStyle) {
         XSSFFont font = workbook.createFont();
-        font.setFontHeightInPoints((short) 12);
+        font.setFontHeightInPoints((short) CUSTOM_FONT_SIZE);
         if (bold) {
             font.setBold(true);
         }
@@ -712,7 +729,7 @@ public class ExportService {
         return notesHeaderStyle;
     }
 
-    private void setHardSquareStyle(CellStyle notesHeaderStyle) {
+    private static void setHardSquareStyle(CellStyle notesHeaderStyle) {
         setStandardTextAlignment(notesHeaderStyle);
         notesHeaderStyle.setBorderTop(BorderStyle.MEDIUM);
         notesHeaderStyle.setBorderBottom(BorderStyle.MEDIUM);
@@ -720,7 +737,7 @@ public class ExportService {
         notesHeaderStyle.setBorderRight(BorderStyle.MEDIUM);
     }
 
-    private void setThinSquareStyle(CellStyle notesHeaderStyle) {
+    private static void setThinSquareStyle(CellStyle notesHeaderStyle) {
         setStandardTextAlignment(notesHeaderStyle);
         notesHeaderStyle.setBorderTop(BorderStyle.THIN);
         notesHeaderStyle.setBorderBottom(BorderStyle.THIN);
@@ -731,7 +748,7 @@ public class ExportService {
     private int handlePermitDayHoursOnMorningRow(Row hoursRow, int notEntirePermitDays, int i, CellStyle hoursCellStyle, Workday selectedDay) {
         if (selectedDay.getWorkPermitHours() > 0) {
             Cell nextCell;
-            if (selectedDay.getWorkPermitHours() < 8) {
+            if (selectedDay.getWorkPermitHours() < MAX_WORKING_HOURS) {
                 nextCell = hoursRow.createCell(HOUR_LABEL + i + 1 + notEntirePermitDays);
                 notEntirePermitDays++;
             } else {
@@ -756,21 +773,22 @@ public class ExportService {
         String easterMonday = EasterUtility.calculateEasterMonday(exportYear).getDayAndMonth();
         for (Workday day : workdays) {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d/M");
-            if (day.getDate().format(formatter).equals(NEW_YEARS_EVE.getSpecialDay().getDayAndMonth())
-                    || day.getDate().format(formatter).equals(EPIPHANY.getSpecialDay().getDayAndMonth())
-                    || day.getDate().format(formatter).equals(APRIL_TWENTY_FIFTH.getSpecialDay().getDayAndMonth())
-                    || day.getDate().format(formatter).equals(WORKERS_DAY.getSpecialDay().getDayAndMonth())
-                    || day.getDate().format(formatter).equals(REPUBLIC_DAY.getSpecialDay().getDayAndMonth())
-                    || day.getDate().format(formatter).equals(MIDSUMMER.getSpecialDay().getDayAndMonth())
-                    || day.getDate().format(formatter).equals(MID_AUGUST.getSpecialDay().getDayAndMonth())
-                    || day.getDate().format(formatter).equals(ALL_SAINTS_DAY.getSpecialDay().getDayAndMonth())
-                    || day.getDate().format(formatter).equals(IMMACULATE_CONCEPTION.getSpecialDay().getDayAndMonth())
-                    || day.getDate().format(formatter).equals(CHRISTMAS.getSpecialDay().getDayAndMonth())
-                    || day.getDate().format(formatter).equals(BOXING_DAY.getSpecialDay().getDayAndMonth())
-                    || day.getDate().format(formatter).equals(easter)
-                    || day.getDate().format(formatter).equals(easterMonday)
-                    || day.getDate().getDayOfWeek().equals(DayOfWeek.SATURDAY)
-                    || day.getDate().getDayOfWeek().equals(DayOfWeek.SUNDAY)
+            LocalDate dayDate = day.getDate();
+            if (dayDate.format(formatter).equals(NEW_YEARS_EVE.getSpecialDay().getDayAndMonth())
+                    || dayDate.format(formatter).equals(EPIPHANY.getSpecialDay().getDayAndMonth())
+                    || dayDate.format(formatter).equals(APRIL_TWENTY_FIFTH.getSpecialDay().getDayAndMonth())
+                    || dayDate.format(formatter).equals(WORKERS_DAY.getSpecialDay().getDayAndMonth())
+                    || dayDate.format(formatter).equals(REPUBLIC_DAY.getSpecialDay().getDayAndMonth())
+                    || dayDate.format(formatter).equals(MIDSUMMER.getSpecialDay().getDayAndMonth())
+                    || dayDate.format(formatter).equals(MID_AUGUST.getSpecialDay().getDayAndMonth())
+                    || dayDate.format(formatter).equals(ALL_SAINTS_DAY.getSpecialDay().getDayAndMonth())
+                    || dayDate.format(formatter).equals(IMMACULATE_CONCEPTION.getSpecialDay().getDayAndMonth())
+                    || dayDate.format(formatter).equals(CHRISTMAS.getSpecialDay().getDayAndMonth())
+                    || dayDate.format(formatter).equals(BOXING_DAY.getSpecialDay().getDayAndMonth())
+                    || dayDate.format(formatter).equals(easter)
+                    || dayDate.format(formatter).equals(easterMonday)
+                    || dayDate.getDayOfWeek() == DayOfWeek.SATURDAY
+                    || dayDate.getDayOfWeek() == DayOfWeek.SUNDAY
             ) {
                 totalNonWorkingDayHours += day.getWorkingHours() + day.getNightWorkingHours() + day.getExtraHours();
             }

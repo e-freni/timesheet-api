@@ -11,11 +11,14 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import javax.persistence.EntityNotFoundException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static com.jaewa.timesheet.service.WorkdayService.FULL_WORK_DAY_HOURS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -151,4 +154,135 @@ class WorkdayServiceTest {
 
         assertThrows(EntityNotFoundException.class, () -> workdayService.deleteWorkday(workdayId));
     }
+
+    @Test
+    void checkUserNormalDayWorkShouldThrowExceptionForFullHoursAndSick() throws Exception {
+        Method method = WorkdayService.class.getDeclaredMethod("checkUserNormalDayWork", Workday.class);
+        method.setAccessible(true);
+
+        Workday workday = new Workday();
+        workday.setWorkingHours(FULL_WORK_DAY_HOURS);
+        workday.setSick(true);
+
+        try {
+            method.invoke(workdayService, workday);
+            fail("Expected IncoherentDataException to be thrown");
+        } catch (InvocationTargetException e) {
+            // Verifica che l'eccezione originale sia IncoherentDataException
+            Throwable targetException = e.getTargetException();
+            assertInstanceOf(IncoherentDataException.class, targetException, "Expected IncoherentDataException, but got " + targetException);
+        }
+    }
+
+    @Test
+    void checkUserExtraHoursShouldThrowExceptionForIncoherentExtraHours() throws Exception {
+        Method method = WorkdayService.class.getDeclaredMethod("checkUserExtraHours", Workday.class);
+        method.setAccessible(true);
+
+        Workday workday = new Workday();
+        workday.setExtraHours(2);
+        workday.setWorkingHours(FULL_WORK_DAY_HOURS - 1);
+
+        try {
+            method.invoke(workdayService, workday);
+            fail("Expected IncoherentDataException to be thrown");
+        } catch (InvocationTargetException e) {
+            Throwable targetException = e.getTargetException();
+            assertInstanceOf(IncoherentDataException.class, targetException, "Expected IncoherentDataException, but got " + targetException);
+        }
+    }
+
+
+    @Test
+    void checkUserNightHoursShouldThrowExceptionForIncoherentNightHours() throws Exception {
+        Method method = WorkdayService.class.getDeclaredMethod("checkUserNightHours", Workday.class);
+        method.setAccessible(true);
+
+        Workday workday = new Workday();
+        workday.setNightWorkingHours(3);
+        workday.setWorkingHours(FULL_WORK_DAY_HOURS - 3);
+
+        try {
+            method.invoke(workdayService, workday);
+            fail("Expected IncoherentDataException to be thrown");
+        } catch (InvocationTargetException e) {
+            Throwable targetException = e.getTargetException();
+            assertInstanceOf(IncoherentDataException.class, targetException, "Expected IncoherentDataException, but got " + targetException);
+        }
+    }
+
+    @Test
+    void checkUserHolidayShouldThrowExceptionForHolidayAndAccidentAtWork() throws Exception {
+        Method method = WorkdayService.class.getDeclaredMethod("checkUserHoliday", Workday.class);
+        method.setAccessible(true);
+
+        Workday workday = new Workday();
+        workday.setHoliday(true);
+        workday.setAccidentAtWork(true);
+
+        try {
+            method.invoke(workdayService, workday);
+            fail("Expected IncoherentDataException to be thrown");
+        } catch (InvocationTargetException e) {
+            Throwable targetException = e.getTargetException();
+            assertInstanceOf(IncoherentDataException.class, targetException, "Expected IncoherentDataException, but got " + targetException);
+        }
+    }
+
+    @Test
+    void checkUserAccidentAtWorkShouldThrowExceptionForAccidentAndWorkingHours() throws Exception {
+        Method method = WorkdayService.class.getDeclaredMethod("checkUserAccidentAtWork", Workday.class);
+        method.setAccessible(true);
+
+        Workday workday = new Workday();
+        workday.setAccidentAtWork(true);
+        workday.setWorkingHours(4);
+
+        try {
+            method.invoke(workdayService, workday);
+            fail("Expected IncoherentDataException to be thrown");
+        } catch (InvocationTargetException e) {
+            Throwable targetException = e.getTargetException();
+            assertInstanceOf(IncoherentDataException.class, targetException, "Expected IncoherentDataException, but got " + targetException);
+        }
+    }
+
+    @Test
+    void checkUserSicknessShouldThrowExceptionForSicknessAndWorkingHours() throws Exception {
+        Method method = WorkdayService.class.getDeclaredMethod("checkUserSickness", Workday.class);
+        method.setAccessible(true);
+
+        Workday workday = new Workday();
+        workday.setSick(true);
+        workday.setWorkingHours(4);
+
+        try {
+            method.invoke(workdayService, workday);
+            fail("Expected IncoherentDataException to be thrown");
+        } catch (InvocationTargetException e) {
+            Throwable targetException = e.getTargetException();
+            assertInstanceOf(IncoherentDataException.class, targetException, "Expected IncoherentDataException, but got " + targetException);
+        }
+    }
+
+    @Test
+    void checkUserWorkPermitHoursShouldThrowExceptionForIncoherentHours() throws Exception {
+        Method method = WorkdayService.class.getDeclaredMethod("checkUserWorkPermitHours", Workday.class);
+        method.setAccessible(true);
+
+        Workday workday = new Workday();
+        workday.setWorkPermitHours(4);
+        workday.setWorkingHours(5);
+
+        try {
+            method.invoke(workdayService, workday);
+            fail("Expected IncoherentDataException to be thrown");
+        } catch (InvocationTargetException e) {
+            Throwable targetException = e.getTargetException();
+            assertInstanceOf(IncoherentDataException.class, targetException, "Expected IncoherentDataException, but got " + targetException);
+        }
+    }
+
+
+
 }
