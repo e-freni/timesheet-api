@@ -1,5 +1,6 @@
 package com.jaewa.timesheet.service;
 
+import com.jaewa.timesheet.AbstractIntegrationTest;
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.Summary;
 import com.jaewa.timesheet.model.Workday;
@@ -7,15 +8,6 @@ import com.jaewa.timesheet.model.repository.ApplicationUserRepository;
 import com.jaewa.timesheet.model.repository.WorkdayRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.transaction.Transactional;
 import java.time.LocalDate;
@@ -23,27 +15,7 @@ import java.time.LocalDate;
 import static com.jaewa.timesheet.model.UserRole.USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ContextConfiguration(initializers = SummaryServiceTest.Initializer.class)
-@Testcontainers
-class SummaryServiceTest {
-    @Container
-    public static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer<>("postgres:14")
-            .withDatabaseName("timesheet")
-            .withUsername("sa")
-            .withPassword("sa");
-
-    static class Initializer
-            implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-            TestPropertyValues.of(
-                    "spring.datasource.url=" + postgreSQLContainer.getJdbcUrl(),
-                    "spring.datasource.username=" + postgreSQLContainer.getUsername(),
-                    "spring.datasource.password=" + postgreSQLContainer.getPassword()
-            ).applyTo(configurableApplicationContext.getEnvironment());
-        }
-    }
+class SummaryServiceTest extends AbstractIntegrationTest {
 
     public static final int JANUARY_WITHOUT_SATURDAYS_AND_SUNDAYS = 21;
     @Autowired
@@ -58,6 +30,7 @@ class SummaryServiceTest {
     ApplicationUser u1;
 
     private void setup() {
+
         u1 = ApplicationUser.builder()
                 .username("baka")
                 .email("baka@gmail.com")
@@ -286,5 +259,98 @@ class SummaryServiceTest {
         assertEquals(8, summaryData.getLoggedSicknessHours());
         assertEquals(8, summaryData.getLoggedAccidentAtWorkHours());
     }
+
+    @Test
+    @Transactional
+    void getSummaryDataOnMonthWithSpecialDays() {
+        setup();
+
+        for (int i = 1; i <= 22; i++) {
+            Workday workday = Workday.builder()
+                    .applicationUser(u1)
+                    .accidentAtWork(false)
+                    .sick(false)
+                    .holiday(false)
+                    .workingHours(8)
+                    .extraHours(0)
+                    .workPermitHours(0)
+                    .nightWorkingHours(0)
+                    .funeralLeave(false)
+                    .date(LocalDate.of(2023, 12, i))
+                    .build();
+            this.workdayRepository.save(workday);
+        }
+
+        Summary summaryData = summaryService.getSummaryData(2023, 12, u1.getId());
+
+        assertEquals(176, summaryData.getLoggedHours());
+        assertEquals(0, summaryData.getToLogHours());
+        assertEquals(0, summaryData.getLoggedPermitHours());
+        assertEquals(0, summaryData.getLoggedHolidaysHours());
+        assertEquals(0, summaryData.getLoggedExtraHours());
+        assertEquals(0, summaryData.getLoggedNightHours());
+        assertEquals(0, summaryData.getLoggedSicknessHours());
+        assertEquals(0, summaryData.getLoggedAccidentAtWorkHours());
+        assertEquals(0, summaryData.getLoggedFuneralLeaveHours());
+    }
+
+    @Test
+    @Transactional
+    void getSummaryDataOnMonthWithWeekendsAndHolidays() {
+        setup();
+
+        for (int i = 1; i <= 21; i++) {
+            Workday workday = Workday.builder()
+                    .applicationUser(u1)
+                    .accidentAtWork(false)
+                    .sick(false)
+                    .holiday(false)
+                    .workingHours(8)
+                    .extraHours(0)
+                    .workPermitHours(0)
+                    .nightWorkingHours(0)
+                    .funeralLeave(false)
+                    .date(LocalDate.of(2024, 2, i))
+                    .build();
+            this.workdayRepository.save(workday);
+        }
+
+        Summary summaryData = summaryService.getSummaryData(2024, 2, u1.getId());
+
+        int totalHoursInFebruary = 29 * 8;
+        int nonWorkingHours = 8 * 8; // february weekends
+        int expectedLoggedHours = totalHoursInFebruary - nonWorkingHours;
+
+        assertEquals(expectedLoggedHours, summaryData.getLoggedHours());
+        assertEquals(0, summaryData.getToLogHours());
+    }
+
+    @Test
+    @Transactional
+    void getSummaryDataWithExtraAndNightHours() {
+        setup();
+
+        Workday workday = Workday.builder()
+                .applicationUser(u1)
+                .accidentAtWork(false)
+                .sick(false)
+                .holiday(false)
+                .workingHours(8)
+                .extraHours(4)
+                .workPermitHours(0)
+                .nightWorkingHours(2)
+                .funeralLeave(false)
+                .date(LocalDate.of(2023, 11, 15))
+                .build();
+        this.workdayRepository.save(workday);
+
+        Summary summaryData = summaryService.getSummaryData(2023, 11, u1.getId());
+
+        assertEquals(8, summaryData.getLoggedHours());
+        assertEquals(4, summaryData.getLoggedExtraHours());
+        assertEquals(2, summaryData.getLoggedNightHours());
+        assertEquals(160, summaryData.getToLogHours());
+    }
+
 
 }

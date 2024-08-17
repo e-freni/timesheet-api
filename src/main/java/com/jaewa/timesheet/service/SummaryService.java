@@ -15,6 +15,7 @@ import static com.jaewa.timesheet.model.specialday.FixedSpecialDay.*;
 
 @Service
 public class SummaryService {
+    public static final int MAX_WORKING_HOURS = 8;
     private final WorkdayService workdayService;
     private final ApplicationUserService applicationUserService;
 
@@ -34,19 +35,19 @@ public class SummaryService {
 
         List<Workday> summaryWorkdays = workdayService.findWorkdayByUser(applicationUser.getUsername(), from, to);
 
-        int accidentAtWorkHours = summaryWorkdays.stream().mapToInt(w -> w.isAccidentAtWork() ? 8 : 0).sum();
+        int accidentAtWorkHours = summaryWorkdays.stream().mapToInt(w -> w.isAccidentAtWork() ? MAX_WORKING_HOURS : 0).sum();
 
         int workdays = summaryWorkdays.stream().mapToInt(Workday::getWorkingHours).sum();
-        int holidaysHours = summaryWorkdays.stream().mapToInt(w -> w.isHoliday() ? 8 : 0).sum();
-        int sicknessHours = summaryWorkdays.stream().mapToInt(w -> w.isSick() ? 8 : 0).sum();
+        int holidaysHours = summaryWorkdays.stream().mapToInt(w -> w.isHoliday() ? MAX_WORKING_HOURS : 0).sum();
+        int sicknessHours = summaryWorkdays.stream().mapToInt(w -> w.isSick() ? MAX_WORKING_HOURS : 0).sum();
         int permitHours = summaryWorkdays.stream().mapToInt(Workday::getWorkPermitHours).sum();
         int extraHours = summaryWorkdays.stream().mapToInt(Workday::getExtraHours).sum();
         int nightHours = summaryWorkdays.stream().mapToInt(Workday::getNightWorkingHours).sum();
-        int funeralLeaveHours = summaryWorkdays.stream().mapToInt(w -> w.isFuneralLeave() ? 8 : 0).sum();
+        int funeralLeaveHours = summaryWorkdays.stream().mapToInt(w -> w.isFuneralLeave() ? MAX_WORKING_HOURS : 0).sum();
         int loggedHours = workdays + holidaysHours + sicknessHours + permitHours + funeralLeaveHours;
 
         int nonWorkinghours = getWorkOnSpecialDays(month, monthDaysNumber, year);
-        int toLogHours = (monthDaysNumber * 8) - nonWorkinghours - loggedHours;
+        int toLogHours = (monthDaysNumber * MAX_WORKING_HOURS) - nonWorkinghours - loggedHours;
 
         if (toLogHours < 0) {
             toLogHours = 0;
@@ -65,7 +66,7 @@ public class SummaryService {
                 .build();
     }
 
-    private int getWorkOnSpecialDays(int month, int monthDaysNumber, int year) {
+    private static int getWorkOnSpecialDays(int month, int monthDaysNumber, int year) {
         int nonWorkingHours = 0;
         String easter = EasterUtility.calculateEaster(year).getDayAndMonth();
         String easterMonday = EasterUtility.calculateEasterMonday(year).getDayAndMonth();
@@ -78,7 +79,7 @@ public class SummaryService {
             calendar.set(year, (month - 1), day);
             int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
             if (dayOfWeek == Calendar.SATURDAY || dayOfWeek == Calendar.SUNDAY) {
-                nonWorkingHours += 8;
+                nonWorkingHours += MAX_WORKING_HOURS;
                 continue;
             }
 
@@ -95,7 +96,7 @@ public class SummaryService {
                     || dayWithMonth.equals(BOXING_DAY.getSpecialDay().getDayAndMonth())
                     || dayWithMonth.equals(easter)
                     || dayWithMonth.equals(easterMonday)) {
-                nonWorkingHours += 8;
+                nonWorkingHours += MAX_WORKING_HOURS;
             }
         }
 

@@ -1,13 +1,13 @@
 package com.jaewa.timesheet;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest
-class TimesheetApplicationTests {
+class TimesheetApplicationTests extends AbstractIntegrationTest {
 
 	@Test
-	void contextLoads() {
+	void contextLoads() { //NOSONAR
+		// This test will verify that the Spring Boot application context loads correctly.
+		// If there are issues with bean configuration or other exceptions during the context loading, the test will fail.
 	}
 
 }

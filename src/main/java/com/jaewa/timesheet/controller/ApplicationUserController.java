@@ -80,8 +80,7 @@ public class ApplicationUserController {
 
     @DeleteMapping("/user/delete/{id}")
     @RolesAllowed("ADMIN")
-    //TODO handle wildcard
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<Object> deleteUser(@PathVariable Long id) {
         return applicationUserService.getById(id)
                 .map(user -> {
                     applicationUserService.deleteUser(id);

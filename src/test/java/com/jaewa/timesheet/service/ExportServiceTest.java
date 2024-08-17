@@ -1,25 +1,19 @@
 package com.jaewa.timesheet.service;
 
+import com.jaewa.timesheet.AbstractIntegrationTest;
 import com.jaewa.timesheet.model.ApplicationUser;
 import com.jaewa.timesheet.model.Workday;
 import com.jaewa.timesheet.model.repository.ApplicationUserRepository;
 import com.jaewa.timesheet.model.repository.WorkdayRepository;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.util.TestPropertyValues;
-import org.springframework.context.ApplicationContextInitializer;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.transaction.Transactional;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 
@@ -27,30 +21,7 @@ import static com.jaewa.timesheet.model.UserRole.USER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-@SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ContextConfiguration(initializers = ExportServiceTest.Initializer.class)
-@Testcontainers
-class ExportServiceTest {
-
-    //TODO create tests for non working days, funeral leave and totals, as soon as all doubts on registration logic are cleared
-
-    @Container
-    public static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer<>("postgres:14")
-            .withDatabaseName("timesheet")
-            .withUsername("sa")
-            .withPassword("sa");
-
-    static class Initializer
-            implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-        public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
-            TestPropertyValues.of(
-                    "spring.datasource.url=" + postgreSQLContainer.getJdbcUrl(),
-                    "spring.datasource.username=" + postgreSQLContainer.getUsername(),
-                    "spring.datasource.password=" + postgreSQLContainer.getPassword()
-            ).applyTo(configurableApplicationContext.getEnvironment());
-        }
-    }
+class ExportServiceTest extends AbstractIntegrationTest {
 
     public static final int MONDAY = 3; // 3 is monday on January
     public static final int TUESDAY = 4;
@@ -58,6 +29,7 @@ class ExportServiceTest {
     public static final int FIRST_SHEET = 0;
     public static final int HEADER_ROW = 3;
     public static final int MORNING_HOURS_ROW = 4;
+
     @Autowired
     ExportService exportService;
 
@@ -66,6 +38,7 @@ class ExportServiceTest {
 
     @Autowired
     ApplicationUserRepository applicationUserRepository;
+
 
     ApplicationUser u1;
 
@@ -374,4 +347,165 @@ class ExportServiceTest {
 
         assertEquals(sickHourStyle, workbook.getSheetAt(FIRST_SHEET).getRow(MORNING_HOURS_ROW).getCell(MONDAY + 2).getCellStyle());
     }
+
+    @Test
+    @Transactional
+    void testExportToTempFileAndDeletion() throws IOException {
+        setup();
+
+        File tempFile = exportService.exportToTempFile(2022, 1, u1.getId());
+        Assertions.assertTrue(tempFile.exists());
+        Assertions.assertTrue(tempFile.isFile());
+
+        exportService.deleteTempFile();
+        Assertions.assertFalse(tempFile.exists());
+    }
+
+    @Test
+    @Transactional
+    void testWriteInfoPanel() throws IOException {
+        setup();
+
+        byte[] export = exportService.export(2022, 1, u1.getId());
+        XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(export));
+        Sheet sheet = workbook.getSheetAt(0);
+
+        Row infoPanelRow = sheet.getRow(1);
+        Cell infoPanelCell = infoPanelRow.getCell(ExportService.INFO_PANEL_START_COLUMN);
+        assertEquals("A= ore complessive B= ore lavorate senza ferie e straordinari", infoPanelCell.getStringCellValue());
+
+        workbook.close();
+    }
+
+    @Test
+    @Transactional
+    void testWriteHeader() throws IOException {
+        setup();
+
+        byte[] export = exportService.export(2022, 1, u1.getId());
+        XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(export));
+        Sheet sheet = workbook.getSheetAt(0);
+
+        Row headerRow = sheet.getRow(ExportService.DAYS_HEADER_ROW);
+        assertEquals("Nome", headerRow.getCell(ExportService.DAYS_START_COLUMN).getStringCellValue());
+
+        for (int i = 1; i <= 31; i++) {
+            Cell dayCell = headerRow.getCell(ExportService.DAYS_HEADER_FIRST_EMPTY_CELL + i);
+            assertEquals(i, dayCell.getNumericCellValue());
+        }
+
+        workbook.close();
+    }
+
+    @Test
+    @Transactional
+    void testWriteHours() throws IOException {
+        setup();
+
+        for (int i = 1; i <= 5; i++) {
+            Workday workday = Workday.builder()
+                    .applicationUser(u1)
+                    .workingHours(8)
+                    .nightWorkingHours(2)
+                    .extraHours(1)
+                    .date(LocalDate.of(2022, 1, i))
+                    .build();
+            this.workdayRepository.save(workday);
+        }
+
+        byte[] export = exportService.export(2022, 1, u1.getId());
+        XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(export));
+        Sheet sheet = workbook.getSheetAt(0);
+
+        Row morningHoursRow = sheet.getRow(ExportService.MORNING_HOURS_ROW);
+        for (int i = 1; i <= 5; i++) {
+            Cell morningCell = morningHoursRow.getCell(ExportService.HOUR_LABEL + i);
+            assertEquals(8.0, morningCell.getNumericCellValue());
+        }
+
+        Row nightHoursRow = sheet.getRow(ExportService.NIGHT_HOURS_ROW);
+        for (int i = 1; i <= 5; i++) {
+            Cell nightCell = nightHoursRow.getCell(ExportService.HOUR_LABEL + i);
+            assertEquals(2.0, nightCell.getNumericCellValue());
+        }
+
+        Row extraHoursRow = sheet.getRow(ExportService.EXTRA_HOURS_ROW);
+        for (int i = 1; i <= 5; i++) {
+            Cell extraCell = extraHoursRow.getCell(ExportService.HOUR_LABEL + i);
+            assertEquals(1.0, extraCell.getNumericCellValue());
+        }
+
+        workbook.close();
+    }
+
+    @Test
+    @Transactional
+    void testHandleMergedCellsAndPermitHours() throws IOException {
+        setup();
+
+        Workday permitDay = Workday.builder()
+                .applicationUser(u1)
+                .workingHours(6)
+                .workPermitHours(2)
+                .date(LocalDate.of(2022, 1, 3))
+                .build();
+        this.workdayRepository.save(permitDay);
+
+        byte[] export = exportService.export(2022, 1, u1.getId());
+        XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(export));
+        Sheet sheet = workbook.getSheetAt(0);
+
+        Row morningHoursRow = sheet.getRow(ExportService.MORNING_HOURS_ROW);
+
+        Cell permitCell = morningHoursRow.getCell(ExportService.HOUR_LABEL + 3);
+        assertEquals(6.0, permitCell.getNumericCellValue());
+
+        Cell nextCell = morningHoursRow.getCell(ExportService.HOUR_LABEL + 4);
+        assertEquals(2.0, nextCell.getNumericCellValue());
+
+        workbook.close();
+    }
+
+    @Test
+    @Transactional
+    void testWriteLegend() throws IOException {
+        setup();
+
+        byte[] export = exportService.export(2022, 1, u1.getId());
+        XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(export));
+        Sheet sheet = workbook.getSheetAt(0);
+
+        Row legendFirstRow = sheet.getRow(ExportService.LEGEND_FIRST_ROW);
+        Cell legendFirstCell = legendFirstRow.getCell(ExportService.LEGEND_FIRST_COLUMN);
+        assertEquals("8", legendFirstCell.getStringCellValue());
+
+        Cell legendDescriptionCell = legendFirstRow.getCell(ExportService.LEGEND_FIRST_COLUMN + 2);
+        assertEquals("Malattia", legendDescriptionCell.getStringCellValue());
+
+        workbook.close();
+    }
+
+    @Test
+    @Transactional
+    void testTotalNonWorkingDayHours() throws IOException {
+        setup();
+
+        Workday holiday = Workday.builder()
+                .applicationUser(u1)
+                .holiday(true)
+                .date(LocalDate.of(2022, 1, 6)) // Epifania
+                .build();
+        this.workdayRepository.save(holiday);
+
+        byte[] export = exportService.export(2022, 1, u1.getId());
+        XSSFWorkbook workbook = new XSSFWorkbook(new ByteArrayInputStream(export));
+        Sheet sheet = workbook.getSheetAt(0);
+
+        Row morningHoursRow = sheet.getRow(ExportService.MORNING_HOURS_ROW);
+        Cell holidayCell = morningHoursRow.getCell(ExportService.HOUR_LABEL + 6);
+        assertEquals(8.0, holidayCell.getNumericCellValue());
+
+        workbook.close();
+    }
+
 }
