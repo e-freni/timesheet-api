@@ -26,7 +26,6 @@ class AuthorizationServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Inizializza i mock manualmente
         MockitoAnnotations.initMocks(this);
         SecurityContextHolder.setContext(securityContext);
         when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -34,7 +33,7 @@ class AuthorizationServiceTest {
     }
 
     @Test
-    void getApplicationUserId_shouldReturnUserId() {
+    void getApplicationUserIdShouldReturnUserId() {
         Long expectedUserId = 123L;
         when(token.getApplicationUserId()).thenReturn(expectedUserId);
 
@@ -45,7 +44,7 @@ class AuthorizationServiceTest {
     }
 
     @Test
-    void checkUserIsAuthorized_shouldNotThrowExceptionForAuthorizedUser() {
+    void checkUserIsAuthorizedShouldNotThrowExceptionForAuthorizedUser() {
         Long userId = 123L;
         when(token.getApplicationUserId()).thenReturn(userId);
 
@@ -53,7 +52,7 @@ class AuthorizationServiceTest {
     }
 
     @Test
-    void checkUserIsAuthorized_shouldThrowExceptionForUnauthorizedUser() {
+    void checkUserIsAuthorizedShouldThrowExceptionForUnauthorizedUser() {
         Long authorizedUserId = 123L;
         Long unauthorizedUserId = 456L;
         when(token.getApplicationUserId()).thenReturn(authorizedUserId);

@@ -31,5 +31,4 @@ public class AuthorizationService {
                 .anyMatch(a -> UserRole.ADMINISTRATOR.getAuthority().equals(a.getAuthority()));
     }
 
-
 }
