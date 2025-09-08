@@ -25,7 +25,8 @@ payroll office continues to make errors, but at least not on my timesheets).
 - **Backend (BE)**: Developed in Java using the [Spring Boot](https://spring.io/projects/spring-boot) framework.
 - **Frontend (FE)**: Developed in JavaScript/[TypeScript](https://www.typescriptlang.org/) using
   the [Angular](https://angular.dev/) framework.
-- **Database**: I used Postres 14, but any relational database can be used, just edit di application.properties inside
+- **Database**: I used PostgreSQL 14, but any relational database can be used, just edit the application.properties
+  inside
   the project and add the driver inside pom.xml
 
 ### Features
